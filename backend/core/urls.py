@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from operations.views import TravelerViewSet, ServiceVoucherViewSet, ItineraryViewSet
+from operations.views import TravelerViewSet, ServiceVoucherViewSet, ItineraryViewSet, ItineraryActivityViewSet
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -23,7 +23,8 @@ schema_view = get_schema_view(
 router = DefaultRouter()
 router.register(r'travelers', TravelerViewSet)
 router.register(r'service-vouchers', ServiceVoucherViewSet)
-router.register(r'itinerary', ItineraryViewSet)
+router.register(r'itinerary', ItineraryViewSet, basename='itinerary')
+router.register(r'itinerary-activities', ItineraryActivityViewSet, basename='itinerary-activity')  # Added this line
 
 urlpatterns = [
     path('admin/', admin.site.urls),

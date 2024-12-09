@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import PhoneIcon from '@mui/icons-material/Phone';
-
+import Badge from '@mui/material/Badge';
 import {
   Box,
   Button,
@@ -19,6 +19,10 @@ import { ServiceVoucher } from '../../services/voucherService';
 import { api } from '../../services/api';
 import './VoucherDetail.css';
 
+interface VoucherResponse {
+  service_voucher: ServiceVoucher;
+}
+
 const VoucherDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [voucher, setVoucher] = useState<ServiceVoucher | null>(null);
@@ -28,8 +32,9 @@ const VoucherDetail: React.FC = () => {
   useEffect(() => {
     const fetchVoucher = async () => {
       try {
-        const response = await api.get<ServiceVoucher>(`/api/service-vouchers/${id}/`);
-        setVoucher(response.data);
+        const response = await api.get<VoucherResponse>(`/api/service-vouchers/${id}/`);
+        console.log('Fetched voucher:', response.data);
+        setVoucher(response.data.service_voucher); // Access the service_voucher property
       } catch (error) {
         console.error('Failed to fetch voucher:', error);
       } finally {
@@ -55,10 +60,10 @@ const VoucherDetail: React.FC = () => {
       if (i > 0) pdf.addPage();
       
       const canvas = await html2canvas(pages[i] as HTMLElement, {
-        scale: 2, // Higher resolution
+        scale: 2,
         useCORS: true,
         logging: false,
-        width: 210 * 3.779527559, // Convert mm to pixels (96 DPI)
+        width: 210 * 3.779527559,
         height: 297 * 3.779527559,
       });
 
@@ -74,7 +79,7 @@ const VoucherDetail: React.FC = () => {
     try {
       await navigator.share({
         title: `Service Voucher - ${voucher.reservation_number}`,
-        text: `Service voucher for ${voucher.traveler.name} at ${voucher.hotel_name}`,
+        text: `Service voucher for ${voucher.traveler?.name} at ${voucher.hotel_name}`,
         url: window.location.href,
       });
     } catch (error) {
@@ -118,7 +123,6 @@ const VoucherDetail: React.FC = () => {
           <div className="voucher-content">
             <div className="company-header">
               <div className="logo-area">
-                {/* Logo will be added later */}
                 <img src="/placeholder-logo.png" alt="Company Logo" style={{ maxWidth: '100%', height: 'auto' }} />
               </div>
               <div className="company-info">
@@ -135,7 +139,7 @@ const VoucherDetail: React.FC = () => {
               <tbody>
                 <tr>
                   <th>GROUP / PAX NAME</th>
-                  <td>{voucher.traveler.name}</td>
+                  <td>{voucher.traveler?.name}</td>
                 </tr>
                 <tr>
                   <th>TRAVEL DATE</th>
@@ -151,35 +155,57 @@ const VoucherDetail: React.FC = () => {
                 <tr>
                   <th>NO OF PAX</th>
                   <td>
-                    Adults: {voucher.traveler.num_adults} | Infants: {voucher.traveler.num_infants}
+                    Adults: {voucher.traveler?.num_adults} | Infants: {voucher.traveler?.num_infants}
                   </td>
                 </tr>
                 <tr>
                   <th>No Of Rooms</th>
                   <td>
-                    {voucher.room_allocations.map((room) => (
+                    {voucher.room_allocations?.map((room) => (
                       `${room.quantity}x ${room.room_type_display}`
                     )).join(', ')}
                   </td>
                 </tr>
                 <tr>
-                  <th>TRANSFER TYPE</th>
-                  <td>Private Basis</td>
+                  <th>Total Rooms</th>
+                  <td>{voucher.total_rooms}</td>
                 </tr>
                 <tr>
-                  <th>HOTEL</th>
-                  <td>{voucher.hotel_name}</td>
+                  <th>Transfer Type</th>
+                  <td>{voucher.transfer_type_display}</td>
                 </tr>
                 <tr>
-                  <th>INCLUSIONS</th>
+                  <th>Meal Plan</th>
+                  <td>{voucher.meal_plan_display}</td>
+                </tr>
+                <tr>
+                  <th>Hotel Confirmation Number</th>
+                  <td>{voucher.hotel_confirmation_number}</td>
+                </tr>
+                <tr>
+                  <th>Inclusions</th>
                   <td>
-                    <ul className="inclusions-list">
-                      <li>Accommodation with Buffet Breakfast</li>
-                      <li>Private transfers</li>
-                      <li>Tours as per itinerary</li>
-                      <li>All entrance tickets as mentioned</li>
+                    <ul style={{ listStyleType: 'none', padding: 0, margin: 0 }}>
+                      {voucher.inclusions.split('.').map((inclusion, index) => (
+                        <li key={index} style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                          <span style={{ color: 'green', marginRight: '8px' }}>✓</span>
+                          {inclusion.trim()}
+                        </li>
+                      ))}
                     </ul>
                   </td>
+                </tr>
+                <tr>
+                  <th>Arrival Details</th>
+                  <td>{voucher.arrival_details}</td>
+                </tr>
+                <tr>
+                  <th>Departure Details</th>
+                  <td>{voucher.departure_details}</td>
+                </tr>
+                <tr>
+                  <th>Meeting Point</th>
+                  <td>{voucher.meeting_point}</td>
                 </tr>
               </tbody>
             </table>
@@ -197,8 +223,6 @@ const VoucherDetail: React.FC = () => {
           </div>
         </div>
 
-import PhoneIcon from '@mui/icons-material/Phone';
-
         {/* Second Page - Itinerary */}
         <div className="voucher-page page-break">
           <div className="voucher-content">
@@ -208,30 +232,52 @@ import PhoneIcon from '@mui/icons-material/Phone';
               </div>
               <div className="company-info">
                 <Typography variant="body2">Reservation: {voucher.reservation_number}</Typography>
-                <Typography variant="body2">Guest: {voucher.traveler.name}</Typography>
+                <Typography variant="body2">Guest: {voucher.traveler?.name}</Typography>
               </div>
             </div>
 
             <div className="itinerary-title">
-              Detailed Itinerary
+              <Typography variant="h5" color="primary">Detailed Itinerary</Typography>
             </div>
 
             <div className="itinerary-content">
-              {voucher.itinerary_items
-                .sort((a, b) => a.day - b.day)
-                .map((item) => (
-                  <div key={item.id} className="itinerary-item">
-                    <Typography variant="h6">
-                      Day {item.day} - {new Date(item.date).toLocaleDateString()}
-                    </Typography>
-                    <Typography variant="subtitle1" color="primary">
-                      Time: {item.time}
-                    </Typography>
-                    <Typography variant="body1" style={{ marginTop: '8px' }}>
-                      {item.description}
-                    </Typography>
-                  </div>
-                ))}
+              <table style={{ width: '100%', marginTop: '16px', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={{ border: '1px solid #ccc', padding: '8px' }}>Day</th>
+                    <th style={{ border: '1px solid #ccc', padding: '8px' }}>Date</th>
+                    <th style={{ border: '1px solid #ccc', padding: '8px' }}>Time</th>
+                    <th style={{ border: '1px solid #ccc', padding: '8px' }}>Detail</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {voucher.itinerary_items?.map((item) => (
+                    <React.Fragment key={item.id}>
+                      <tr>
+                        <td style={{ border: '1px solid #ccc', padding: '8px' }}>Day {item.day}</td>
+                        <td style={{ border: '1px solid #ccc', padding: '8px' }}>{new Date(item.date).toLocaleDateString()}</td>
+                        <td style={{ border: '1px solid #ccc', padding: '8px' }}>
+                          {item.activities?.map(activity => (
+                            <Typography variant="subtitle1" color="primary" key={activity.id}>
+                              {activity.time}
+                            </Typography>
+                          ))}
+                        </td>
+                        <td style={{ border: '1px solid #ccc', padding: '8px' }}>
+                          {item.activities?.map(activity => (
+                            <div key={activity.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Typography variant="body1" color="text.secondary">
+                                {activity.description}
+                              </Typography>
+                              <Badge badgeContent={activity.activity_type_display} color="primary" />
+                            </div>
+                          ))}
+                        </td>
+                      </tr>
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
 

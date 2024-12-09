@@ -29,13 +29,15 @@ const VoucherList: React.FC = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
     const loadVouchers = async () => {
       try {
         setLoading(true);
-        const response = await fetchServiceVouchers();
+        const response = await fetchServiceVouchers(page + 1, rowsPerPage);
         setVouchers(response.results);
+        setTotalCount(response.count);
       } catch (error) {
         console.error('Failed to load vouchers:', error);
       } finally {
@@ -43,14 +45,15 @@ const VoucherList: React.FC = () => {
       }
     };
     loadVouchers();
-  }, []);
+  }, [page, rowsPerPage]);
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
+    const newRowsPerPage = parseInt(event.target.value, 10);
+    setRowsPerPage(newRowsPerPage);
     setPage(0);
   };
 
@@ -108,35 +111,34 @@ const VoucherList: React.FC = () => {
       </Box>
 
       <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }}>
+        <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Reservation #</TableCell>
+              <TableCell>Reservation Number</TableCell>
               <TableCell>Traveler</TableCell>
               <TableCell>Hotel</TableCell>
-              <TableCell>Check-in</TableCell>
-              <TableCell>Check-out</TableCell>
+              <TableCell>Travel Dates</TableCell>
               <TableCell>Status</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredVouchers
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((voucher) => (
-                <TableRow
-                  key={voucher.id}
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                >
-                  <TableCell component="th" scope="row">
-                    {voucher.reservation_number}
-                  </TableCell>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={6} align="center">Loading...</TableCell>
+              </TableRow>
+            ) : filteredVouchers.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} align="center">No vouchers found</TableCell>
+              </TableRow>
+            ) : (
+              filteredVouchers.map((voucher) => (
+                <TableRow key={voucher.id}>
+                  <TableCell>{voucher.reservation_number}</TableCell>
                   <TableCell>{voucher.traveler.name}</TableCell>
                   <TableCell>{voucher.hotel_name}</TableCell>
                   <TableCell>
-                    {new Date(voucher.travel_start_date).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
+                    {new Date(voucher.travel_start_date).toLocaleDateString()} -{' '}
                     {new Date(voucher.travel_end_date).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
@@ -146,7 +148,7 @@ const VoucherList: React.FC = () => {
                       size="small"
                     />
                   </TableCell>
-                  <TableCell align="right">
+                  <TableCell>
                     <IconButton
                       onClick={() => handleViewVoucher(voucher.id)}
                       color="primary"
@@ -156,19 +158,20 @@ const VoucherList: React.FC = () => {
                     </IconButton>
                   </TableCell>
                 </TableRow>
-              ))}
+              ))
+            )}
           </TableBody>
         </Table>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={totalCount}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
       </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
-        component="div"
-        count={filteredVouchers.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
     </Box>
   );
 };

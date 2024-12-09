@@ -1,10 +1,19 @@
 from rest_framework import serializers
-from .models import Traveler, ServiceVoucher, RoomAllocation, Itinerary
+from .models import Traveler, ServiceVoucher, RoomAllocation, Itinerary, ItineraryActivity
+
+class ItineraryActivitySerializer(serializers.ModelSerializer):
+    activity_type_display = serializers.CharField(source='get_activity_type_display', read_only=True)
+    
+    class Meta:
+        model = ItineraryActivity
+        fields = ['id', 'time', 'activity_type', 'activity_type_display', 'description', 'location', 'notes']
 
 class ItinerarySerializer(serializers.ModelSerializer):
+    activities = ItineraryActivitySerializer(many=True, read_only=True)
+    
     class Meta:
         model = Itinerary
-        fields = '__all__'
+        fields = ['id', 'day', 'date', 'service_voucher', 'activities']
 
 class RoomAllocationSerializer(serializers.ModelSerializer):
     room_type_display = serializers.CharField(source='get_room_type_display', read_only=True)

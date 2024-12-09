@@ -77,9 +77,37 @@ class Itinerary(models.Model):
     service_voucher = models.ForeignKey(ServiceVoucher, on_delete=models.CASCADE, related_name='itinerary_items')
     day = models.IntegerField()
     date = models.DateField()
-    time = models.TimeField()
-    description = models.TextField(blank=True)
-    
 
     def __str__(self):
-        return f"Day {self.day}: {self.description}"
+        return f"Day {self.day} - {self.date}"
+
+    class Meta:
+        ordering = ['day']
+        unique_together = ['service_voucher', 'day']
+        verbose_name_plural = 'Itineraries'
+
+
+class ItineraryActivity(models.Model):
+    ACTIVITY_TYPES = [
+        ('TRANSFER', 'Transfer'),
+        ('TOUR', 'Tour/Activity'),
+        ('CHECKIN', 'Hotel Check-in'),
+        ('CHECKOUT', 'Hotel Check-out'),
+        ('MEAL', 'Meal'),
+        ('FREE', 'Free Time'),
+        ('OTHER', 'Other')
+    ]
+
+    itinerary = models.ForeignKey(Itinerary, on_delete=models.CASCADE, related_name='activities')
+    time = models.TimeField()
+    activity_type = models.CharField(max_length=20, choices=ACTIVITY_TYPES, default='OTHER')
+    description = models.TextField()
+    location = models.CharField(max_length=200, blank=True)
+    notes = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.time.strftime('%H:%M')} - {self.get_activity_type_display()}"
+
+    class Meta:
+        ordering = ['time']
+        verbose_name_plural = 'Itinerary Activities'

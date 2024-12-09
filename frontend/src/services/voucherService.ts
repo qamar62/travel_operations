@@ -19,23 +19,43 @@ export interface RoomAllocation {
   quantity: number;
 }
 
+export interface ItineraryActivity {
+  id: number;
+  time: string;
+  activity_type: string;
+  activity_type_display: string; // Added for display purposes
+  description: string;
+  location: string;
+  notes: string;
+}
+
 export interface ItineraryItem {
   id: number;
   day: number;
   date: string;
-  time: string;
-  description: string;
+  time: string; // Added time property
+  activities: ItineraryActivity[]; // Ensure activities property is included
 }
 
 export interface ServiceVoucher {
   id: number;
   traveler: Traveler;
   room_allocations: RoomAllocation[];
-  itinerary_items: ItineraryItem[];
+  itinerary_items: ItineraryItem[]; // Ensure itinerary_items includes activities
   travel_start_date: string;
   travel_end_date: string;
   reservation_number: string;
   hotel_name: string;
+  total_rooms: number; // Added property
+  transfer_type_display: string; // Added property
+  meal_plan_display: string; // Added property
+  hotel_confirmation_number: string; // Added property
+  transfer_type: string; // Added property
+  meal_plan: string; // Added property
+  inclusions: string; // Added property
+  arrival_details: string; // Added property
+  departure_details: string; // Added property
+  meeting_point: string; // Added property
 }
 
 export interface ApiResponse {
@@ -45,9 +65,14 @@ export interface ApiResponse {
   results: ServiceVoucher[];
 }
 
-export const fetchServiceVouchers = async (): Promise<ApiResponse> => {
+export const fetchServiceVouchers = async (page: number = 1, pageSize: number = 10): Promise<ApiResponse> => {
   try {
-    const response = await api.get<ApiResponse>('/api/service-vouchers/');
+    const response = await api.get<ApiResponse>('/api/service-vouchers/', {
+      params: {
+        page,
+        page_size: pageSize
+      }
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching service vouchers:', error);
