@@ -4,12 +4,12 @@ import { api } from './api';
 const API_URL = 'http://127.0.0.1:8000/api';
 
 export interface Traveler {
-  id: number;
+  id: number; // Required
   name: string;
   num_adults: number;
   num_infants: number;
-  contact_email: string;
-  contact_phone: string;
+  contact_email?: string; // Optional
+  contact_phone?: string; // Optional
 }
 
 export interface RoomAllocation {
@@ -78,4 +78,18 @@ export const fetchServiceVouchers = async (page: number = 1, pageSize: number = 
     console.error('Error fetching service vouchers:', error);
     throw new Error('Failed to fetch service vouchers');
   }
+};
+
+export const createServiceVoucher = async (voucher: ServiceVoucher) => {
+  const response = await api.post<ServiceVoucher>('/api/service-vouchers/', voucher);
+  return response.data;
+};
+
+export const updateServiceVoucher = async (id: number, voucher: ServiceVoucher) => {
+  const response = await api.put<ServiceVoucher>(`/api/service-vouchers/${id}/`, voucher);
+  return response.data;
+};
+
+export const deleteServiceVoucher = async (id: number) => {
+  await api.delete(`/api/service-vouchers/${id}/`);
 };

@@ -106,13 +106,13 @@
 
 .emergency-contacts {
   margin-top: auto;
-  padding: 15px;
+  padding: 5px;
   background-color: #f8f8f8;
   border-radius: 15px;
   position: absolute;
   bottom: 5mm;
-  left: 10mm;
-  right: 10mm;
+  left: 5mm;
+  right: 5mm;
 }
 
 .emergency-contacts h3 {

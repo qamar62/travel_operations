@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Booking, Traveler } from '../types';
+import { ServiceVoucher, CreateServiceVoucherInput } from '../types';
 
 const API_URL = 'http://127.0.0.1:8000';
 
@@ -10,26 +10,26 @@ export const api = axios.create({
   },
 });
 
-export const fetchBookings = async () => {
-  const response = await api.get<{results: Booking[]}>(`/service-vouchers/`);
+export const fetchServiceVouchers = async () => {
+  const response = await api.get<{results: ServiceVoucher[]}>(`/service-vouchers/`);
   return response.data.results;
 };
 
-export const fetchBookingById = async (id: number) => {
-  const response = await api.get<Booking>(`/service-vouchers/${id}/`);
+export const fetchServiceVoucherById = async (id: number) => {
+  const response = await api.get<ServiceVoucher>(`/service-vouchers/${id}/`);
   return response.data;
 };
 
-export const createBooking = async (booking: Booking) => {
-  const response = await api.post<Booking>(`/service-vouchers/`, booking);
+export const createServiceVoucher = async (voucher: CreateServiceVoucherInput) => {
+  const response = await api.post<ServiceVoucher>(`/service-vouchers/`, voucher);
   return response.data;
 };
 
-export const updateBooking = async (id: number, booking: Booking) => {
-  const response = await api.put<Booking>(`/service-vouchers/${id}/`, booking);
+export const updateServiceVoucher = async (id: number, voucher: ServiceVoucher) => {
+  const response = await api.put<ServiceVoucher>(`/service-vouchers/${id}/`, voucher);
   return response.data;
 };
 
-export const deleteBooking = async (id: number) => {
+export const deleteServiceVoucher = async (id: number) => {
   await api.delete(`/service-vouchers/${id}/`);
 };
