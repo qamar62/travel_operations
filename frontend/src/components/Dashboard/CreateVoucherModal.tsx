@@ -98,7 +98,7 @@ const CreateVoucherModal: React.FC<CreateVoucherModalProps> = ({
   };
 
   const addActivity = () => {
-    setItineraryItems([...itineraryItems, { id: 0, day: 1, date: new Date().toISOString().split('T')[0], activities: [] }]);
+    setItineraryItems([...itineraryItems, { id: 0, day: 1, date: new Date().toISOString().split('T')[0], activities: [{ id: 0, time: '', activity_type: 'OTHER', activity_type_display: 'Other', description: '', location: '', notes: '' }] }]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
