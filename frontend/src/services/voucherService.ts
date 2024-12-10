@@ -67,7 +67,7 @@ export interface ApiResponse {
 
 export const fetchServiceVouchers = async (page: number = 1, pageSize: number = 10): Promise<ApiResponse> => {
   try {
-    const response = await api.get<ApiResponse>('/api/service-vouchers/', {
+    const response = await api.get<ApiResponse>('/service-vouchers/', {
       params: {
         page,
         page_size: pageSize
@@ -81,15 +81,15 @@ export const fetchServiceVouchers = async (page: number = 1, pageSize: number = 
 };
 
 export const createServiceVoucher = async (voucher: ServiceVoucher) => {
-  const response = await api.post<ServiceVoucher>('/api/service-vouchers/', voucher);
+  const response = await api.post<ServiceVoucher>('/service-vouchers/', voucher);
   return response.data;
 };
 
 export const updateServiceVoucher = async (id: number, voucher: ServiceVoucher) => {
-  const response = await api.put<ServiceVoucher>(`/api/service-vouchers/${id}/`, voucher);
+  const response = await api.put<ServiceVoucher>(`/service-vouchers/${id}/`, voucher);
   return response.data;
 };
 
 export const deleteServiceVoucher = async (id: number) => {
-  await api.delete(`/api/service-vouchers/${id}/`);
+  await api.delete(`/service-vouchers/${id}/`);
 };
