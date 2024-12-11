@@ -7,6 +7,7 @@ import Layout from './components/Layout/Layout';
 import Dashboard from './components/Dashboard/Dashboard';
 import VoucherList from './components/Voucher/VoucherList';
 import VoucherDetail from './components/Voucher/VoucherDetail';
+import VoucherEdit from './components/Voucher/VoucherEdit';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/vouchers" element={<VoucherList />} />
             <Route path="/vouchers/:id" element={<VoucherDetail />} />
+            <Route path="/vouchers/:id/edit" element={<VoucherEdit />} />
           </Routes>
         </Layout>
       </Router>

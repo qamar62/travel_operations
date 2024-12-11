@@ -110,14 +110,22 @@ const CreateVoucherModal: React.FC<CreateVoucherModalProps> = ({
         id: 0,
         day: dayIndex + 1,
         date: formData.travel_start_date,
-        activities: [],
+        activities: [{
+          id: 0,
+          time: '', // Initialize time here
+          activity_type: 'OTHER',
+          activity_type_display: 'Other',
+          description: '',
+          location: '',
+          notes: '',
+        }],
       };
     }
     
     if (!updatedItems[dayIndex].activities[activityIndex]) {
       updatedItems[dayIndex].activities[activityIndex] = {
         id: 0,
-        time: '',
+        time: '', // Initialize time here
         activity_type: 'OTHER',
         activity_type_display: 'Other',
         description: '',
@@ -141,13 +149,21 @@ const CreateVoucherModal: React.FC<CreateVoucherModalProps> = ({
         id: 0,
         day: dayIndex + 1,
         date: formData.travel_start_date,
-        activities: [],
+        activities: [{
+          id: 0,
+          time: '', // Initialize time here
+          activity_type: 'OTHER',
+          activity_type_display: 'Other',
+          description: '',
+          location: '',
+          notes: '',
+        }],
       };
     }
     
     updatedItems[dayIndex].activities.push({
       id: 0,
-      time: '',
+      time: '', // Initialize time here
       activity_type: 'OTHER',
       activity_type_display: 'Other',
       description: '',
@@ -177,6 +193,7 @@ const CreateVoucherModal: React.FC<CreateVoucherModalProps> = ({
         room_allocations: roomAllocations,
         itinerary_items: itineraryItems,
       };
+      console.log("Submitting data:", submitData); // Log the data being submitted
       const response = await createServiceVoucher(submitData);
       onVoucherCreated(response);
       onClose();
@@ -246,6 +263,16 @@ const CreateVoucherModal: React.FC<CreateVoucherModalProps> = ({
                 value={formData.traveler.num_infants}
                 onChange={handleChange}
                 inputProps={{ min: 0 }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Reservation Number"
+                name="reservation_number"
+                value={formData.reservation_number}
+                onChange={handleChange}
+                required
               />
             </Grid>
           </Grid>

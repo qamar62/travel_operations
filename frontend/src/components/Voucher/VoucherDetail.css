@@ -1,55 +1,75 @@
-@media print {
-  body * {
-    visibility: hidden;
-  }
-  .voucher-page,
-  .voucher-page * {
-    visibility: visible;
-  }
-  .voucher-page {
-    position: relative;
-    left: 0;
-    top: 0;
-    box-shadow: none;
-    margin: 0;
-    padding: 15mm;
-  }
-  .no-print {
-    display: none !important;
-  }
-  .page-break {
-    page-break-before: always;
-  }
+/* A4 size settings */
+@page {
+  size: A4;
+  margin: 0;
+}
+
+body {
+  margin: 0;
 }
 
 .voucher-page {
   width: 210mm;
   min-height: 297mm;
-  padding: 20mm;
-  margin: 10mm auto;
+  padding: 15mm;
+  margin: 0 auto;
   background: white;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   position: relative;
-  display: flex;
-  flex-direction: column;
+  box-sizing: border-box;
 }
 
-.voucher-content {
-  flex: 1;
+/* Print-specific styles */
+@media print {
+  html, body {
+    width: 210mm;
+    height: 297mm;
+    margin: 0;
+    padding: 0;
+  }
+
+  .voucher-page {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 15mm;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    page-break-after: always;
+  }
+
+  .page-break {
+    page-break-before: always;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 }
 
+/* Company header styles */
 .company-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
 }
 
 .logo-area {
-  width: 200px;
-  height: 80px;
+  width: 150px;
+}
+
+.logo-area img {
+  max-width: 100%;
+  height: auto;
 }
 
 .company-info {
@@ -64,6 +84,10 @@
   font-size: 24px;
   font-weight: bold;
   text-transform: uppercase;
+}
+
+.voucher-content {
+  flex: 1;
 }
 
 .voucher-table {
@@ -155,44 +179,142 @@
 }
 
 .itinerary-content {
-  margin-bottom: 80px; /* Space for emergency contacts */
+  margin-top: 24px;
+  break-inside: avoid-page;
+}
+
+.itinerary-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 16px;
+}
+
+.itinerary-table th,
+.itinerary-table td {
+  border: 1px solid #e0e0e0;
+  padding: 12px;
+}
+
+.itinerary-table th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  text-align: left;
+}
+
+.activity-block {
+  padding: 8px;
+  margin: 8px 0;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  border-left: 4px solid #1976d2;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.activity-time {
+  font-weight: 600;
+  color: #1976d2;
+  padding: 4px 8px;
+  background-color: #e3f2fd;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.activity-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-top: 4px;
+}
+
+.activity-description {
+  flex-grow: 1;
+  margin-right: 16px;
+}
+
+.activity-type-badge {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background-color: #1976d2;
+  color: white;
+  white-space: nowrap;
+}
+
+.activity-location {
+  font-size: 0.875rem;
+  color: #666;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.itinerary-day-header {
+  background-color: #f5f5f5;
+  padding: 12px;
+  margin-top: 16px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #e0e0e0;
+}
+
+.continuation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.continuation-header .page-info {
+  font-size: 0.9em;
+  color: #666;
 }
 
 @media print {
-  @page {
-    size: A4;
-    margin: 0;
-  }
-  
-  body {
-    margin: 0;
-    padding: 0;
-  }
-  
   body * {
     visibility: hidden;
   }
-  
   .voucher-page,
   .voucher-page * {
     visibility: visible;
   }
-  
   .voucher-page {
     position: relative;
-    width: 210mm;
-    height: 297mm;
-    padding: 20mm;
-    margin: 0;
+    left: 0;
+    top: 0;
     box-shadow: none;
-    page-break-after: always;
+    margin: 0;
+    padding: 15mm;
   }
-  
   .no-print {
     display: none !important;
   }
-  
   .page-break {
     page-break-before: always;
+  }
+  .voucher-page {
+    page-break-after: always;
+  }
+  .page-break {
+    page-break-before: always;
+  }
+  .itinerary-day {
+    page-break-inside: avoid;
+  }
+  .activity-block {
+    page-break-inside: avoid;
+  }
+  .company-header {
+    position: running(header);
+    display: table-header-group;
+  }
+  .emergency-contacts {
+    position: running(footer);
+    display: table-footer-group;
   }
 }

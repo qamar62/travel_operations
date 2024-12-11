@@ -32,9 +32,9 @@ const VoucherDetail: React.FC = () => {
   useEffect(() => {
     const fetchVoucher = async () => {
       try {
-        const response = await api.get<VoucherResponse>(`/api/service-vouchers/${id}/`);
+        const response = await api.get<VoucherResponse>(`/service-vouchers/${id}/`);
         console.log('Fetched voucher:', response.data);
-        setVoucher(response.data.service_voucher); // Access the service_voucher property
+        setVoucher(response.data); // Remove .service_voucher since the response is already the voucher
       } catch (error) {
         console.error('Failed to fetch voucher:', error);
       } finally {
@@ -225,73 +225,70 @@ const VoucherDetail: React.FC = () => {
 
         {/* Second Page - Itinerary */}
         <div className="voucher-page page-break">
-          <div className="voucher-content">
-            <div className="company-header">
-              <div className="logo-area">
-                <img src="/placeholder-logo.png" alt="Company Logo" style={{ maxWidth: '100%', height: 'auto' }} />
-              </div>
-              <div className="company-info">
-                <Typography variant="body2">Reservation: {voucher.reservation_number}</Typography>
-                <Typography variant="body2">Guest: {voucher.traveler?.name}</Typography>
-              </div>
+          {/* Continuation header for itinerary pages */}
+          <div className="company-header">
+            <div className="logo-area">
+              <img src="/placeholder-logo.png" alt="Company Logo" style={{ maxWidth: '100%', height: 'auto' }} />
             </div>
-
-            <div className="itinerary-title">
-              <Typography variant="h5" color="primary">Detailed Itinerary</Typography>
-            </div>
-
-            <div className="itinerary-content">
-              <table style={{ width: '100%', marginTop: '16px', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr>
-                    <th style={{ border: '1px solid #ccc', padding: '8px' }}>Day</th>
-                    <th style={{ border: '1px solid #ccc', padding: '8px' }}>Date</th>
-                    <th style={{ border: '1px solid #ccc', padding: '8px' }}>Time</th>
-                    <th style={{ border: '1px solid #ccc', padding: '8px' }}>Detail</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {voucher.itinerary_items?.map((item) => (
-                    <React.Fragment key={item.id}>
-                      <tr>
-                        <td style={{ border: '1px solid #ccc', padding: '8px' }}>Day {item.day}</td>
-                        <td style={{ border: '1px solid #ccc', padding: '8px' }}>{new Date(item.date).toLocaleDateString()}</td>
-                        <td style={{ border: '1px solid #ccc', padding: '8px' }}>
-                          {item.activities?.map(activity => (
-                            <Typography variant="subtitle1" color="primary" key={activity.id}>
-                              {activity.time}
-                            </Typography>
-                          ))}
-                        </td>
-                        <td style={{ border: '1px solid #ccc', padding: '8px' }}>
-                          {item.activities?.map(activity => (
-                            <div key={activity.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <Typography variant="body1" color="text.secondary">
-                                {activity.description}
-                              </Typography>
-                              <Badge badgeContent={activity.activity_type_display} color="primary" />
-                            </div>
-                          ))}
-                        </td>
-                      </tr>
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
+            <div className="company-info">
+              <Typography variant="body2">Reservation: {voucher.reservation_number}</Typography>
+              <Typography variant="body2">Guest: {voucher.traveler?.name}</Typography>
+              <Typography variant="body2" className="page-info">Detailed Itinerary</Typography>
             </div>
           </div>
 
+          <div className="itinerary-content">
+            {voucher.itinerary_items?.map((item) => (
+              <div key={item.id} className="itinerary-day">
+                <div className="itinerary-day-header">
+                  <Typography variant="h6">
+                    Day {item.day} - {new Date(item.date).toLocaleDateString()}
+                  </Typography>
+                </div>
+                
+                {item.activities?.map(activity => (
+                  <div key={activity.id} className="activity-block">
+                    <div className="activity-time">
+                      {new Date(`2000-01-01T${activity.time}`).toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      })}
+                    </div>
+                    <div className="activity-content">
+                      <div className="activity-description">
+                        <Typography variant="body1">
+                          {activity.description}
+                        </Typography>
+                        {activity.location && (
+                          <Typography className="activity-location">
+                            📍 {activity.location}
+                          </Typography>
+                        )}
+                        {activity.notes && (
+                          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                            Note: {activity.notes}
+                          </Typography>
+                        )}
+                      </div>
+                      <span className="activity-type-badge">
+                        {activity.activity_type_display}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+
+          {/* Emergency contacts for itinerary pages */}
           <div className="emergency-contacts">
             <h3>Emergency Contact Numbers</h3>
             <table>
               <tbody>
                 <tr>
-                  <td>Mr. Sohan Dsouza</td>
-                  <td>+971 558238896</td>
-                </tr>
-                <tr>
-                  <td>Mr. Mohammed Anas</td>
-                  <td>+971 505536630</td>
+                  <td>Mr. Sohan Dsouza - <PhoneIcon fontSize="small" /> +971 558238896</td>
+                  <td>Mr. Mohammed Anas - <PhoneIcon fontSize="small" /> +971 505536630</td>
                 </tr>
               </tbody>
             </table>

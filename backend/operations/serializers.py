@@ -6,7 +6,7 @@ class ItineraryActivitySerializer(serializers.ModelSerializer):
     
     class Meta:
         model = ItineraryActivity
-        fields = ['id', 'time', 'activity_type', 'activity_type_display', 'description', 'location', 'notes']
+        fields = ['id', 'itinerary', 'time', 'activity_type', 'activity_type_display', 'description', 'location', 'notes']
 
 class ItinerarySerializer(serializers.ModelSerializer):
     activities = ItineraryActivitySerializer(many=True, read_only=True)
@@ -20,7 +20,7 @@ class RoomAllocationSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = RoomAllocation
-        fields = ['id', 'room_type', 'room_type_display', 'quantity']
+        fields = ['id', 'service_voucher', 'room_type', 'room_type_display', 'quantity']
 
 class TravelerSerializer(serializers.ModelSerializer):
     class Meta:
