@@ -28,8 +28,9 @@ class ServiceVoucherViewSet(viewsets.ModelViewSet):
     API endpoint for managing service vouchers.
     Includes room allocations and itinerary items.
     """
-    queryset = ServiceVoucher.objects.all()
+    queryset = ServiceVoucher.objects.all().order_by('-id')  # Order by id descending
     serializer_class = ServiceVoucherSerializer
+    ordering = ['-id']  # Add default ordering
 
     @transaction.atomic
     def update(self, request, *args, **kwargs):

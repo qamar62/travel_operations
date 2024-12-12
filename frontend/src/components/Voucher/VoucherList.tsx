@@ -157,7 +157,9 @@ const VoucherList: React.FC = () => {
     try {
       setLoading(true);
       const response = await fetchServiceVouchers(page + 1, rowsPerPage);
-      setVouchers(response.results);
+      // Sort vouchers by id in descending order to show newest first
+      const sortedVouchers = [...response.results].sort((a, b) => b.id - a.id);
+      setVouchers(sortedVouchers);
       setTotalCount(response.count);
     } catch (error) {
       console.error('Error loading vouchers:', error);
@@ -201,6 +203,7 @@ const VoucherList: React.FC = () => {
   };
 
   const handleVoucherCreated = async (newVoucher: ServiceVoucher) => {
+    setPage(0); // Reset to first page
     await loadVouchers(); // Reload the list to include the new voucher
     setIsCreateModalOpen(false);
   };
