@@ -129,16 +129,16 @@ const Dashboard: React.FC = () => {
         {/* Stats Cards */}
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            title="Total Bookings"
-            value="1,234"
+            title="Service Vouchers"
+            value="22"
             icon={<LocalActivity />}
             trend="up"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
-            title="Active Travelers"
-            value="156"
+            title="Upcoming  Tasks"
+            value="3"
             icon={<Group />}
             trend="up"
           />
@@ -146,7 +146,7 @@ const Dashboard: React.FC = () => {
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Revenue"
-            value="$45.2K"
+            value="AED 45.2K"
             icon={<AttachMoney />}
             trend="up"
           />
