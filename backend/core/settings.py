@@ -7,7 +7,7 @@ SECRET_KEY = 'your-secret-key-replace-in-production'
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["admin.ant.ae"]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -36,7 +36,7 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Vite default port
+    "http://localhost:5173","https://op.ant.ae"  # Vite default port
 ]
 
 ROOT_URLCONF = 'core.urls'
