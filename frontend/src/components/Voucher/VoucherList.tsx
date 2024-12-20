@@ -1,59 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import {
-  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  TablePagination,
+  Paper,
   IconButton,
+  Button,
   Typography,
   Box,
   Chip,
-  TextField,
-  InputAdornment,
-  Tooltip,
-  Button,
-  Collapse,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import {
-  Visibility as VisibilityIcon,
   Edit as EditIcon,
-  Search as SearchIcon,
-  Add as AddIcon,
-  KeyboardArrowDown as KeyboardArrowDownIcon,
-  KeyboardArrowUp as KeyboardArrowUpIcon,
+  Delete as DeleteIcon,
+  Visibility as ViewIcon,
 } from '@mui/icons-material';
-import { fetchServiceVouchers, ServiceVoucher } from '../../services/voucherService';
+import { useNavigate } from 'react-router-dom';
+import { fetchServiceVouchers, deleteServiceVoucher } from '../../services/voucherService';
+import { ServiceVoucher, ItineraryItem, ItineraryActivity } from '../../types';
 import CreateVoucherModal from './CreateVoucherModal';
-
-// Utility functions moved outside components
-const getStatusColor = (startDate: string, endDate: string) => {
-  const now = new Date();
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-
-  if (now < start) return 'info'; // Upcoming
-  if (now > end) return 'default'; // Completed
-  return 'success'; // Active
-};
-
-const getStatusText = (startDate: string, endDate: string) => {
-  const now = new Date();
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-
-  if (now < start) return 'Upcoming';
-  if (now > end) return 'Completed';
-  return 'Active';
-};
 
 interface ExpandableRowProps {
   voucher: ServiceVoucher;
@@ -77,7 +49,7 @@ const ExpandableRow: React.FC<ExpandableRowProps> = ({
             size="small"
             onClick={() => setOpen(!open)}
           >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+            {open ? <ViewIcon /> : <ViewIcon />}
           </IconButton>
         </TableCell>
         <TableCell>{voucher.reservation_number}</TableCell>
@@ -86,15 +58,15 @@ const ExpandableRow: React.FC<ExpandableRowProps> = ({
         <TableCell>{new Date(voucher.travel_start_date).toLocaleDateString()}</TableCell>
         <TableCell>
           <Chip
-            label={getStatusText(voucher.travel_start_date, voucher.travel_end_date)}
-            color={getStatusColor(voucher.travel_start_date, voucher.travel_end_date) as any}
+            label={voucher.status}
+            color={voucher.status === 'active' ? 'success' : 'default'}
             size="small"
           />
         </TableCell>
         <TableCell>
           <Tooltip title="View Details">
             <IconButton onClick={() => handleViewVoucher(voucher.id)}>
-              <VisibilityIcon />
+              <ViewIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Edit">
@@ -112,14 +84,14 @@ const ExpandableRow: React.FC<ExpandableRowProps> = ({
                 Itinerary Details
               </Typography>
               <List>
-                {voucher.itinerary_items.map((item) => (
+                {voucher.itinerary_items.map((item: ItineraryItem) => (
                   <React.Fragment key={item.id}>
                     <ListItem>
                       <ListItemText
                         primary={`Day ${item.day} - ${new Date(item.date).toLocaleDateString()}`}
                         secondary={
                           <List>
-                            {item.activities.map((activity) => (
+                            {item.activities.map((activity: ItineraryActivity) => (
                               <ListItem key={activity.id}>
                                 <ListItemText
                                   primary={`${activity.time} - ${activity.activity_type_display}`}
@@ -144,23 +116,25 @@ const ExpandableRow: React.FC<ExpandableRowProps> = ({
 };
 
 const VoucherList: React.FC = () => {
-  const navigate = useNavigate();
   const [vouchers, setVouchers] = useState<ServiceVoucher[]>([]);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [selectedVoucherId, setSelectedVoucherId] = useState<number | null>(null);
+  const navigate = useNavigate();
 
   const loadVouchers = async () => {
     try {
       setLoading(true);
-      const response = await fetchServiceVouchers(page + 1, rowsPerPage);
-      // Sort vouchers by id in descending order to show newest first
-      const sortedVouchers = [...response.results].sort((a, b) => b.id - a.id);
+      const response = await fetchServiceVouchers(1, 10);
+      const sortedVouchers = [...response.results].sort((a: ServiceVoucher, b: ServiceVoucher) => {
+        if (a.id && b.id) {
+          return b.id - a.id;
+        }
+        return 0;
+      });
       setVouchers(sortedVouchers);
-      setTotalCount(response.count);
     } catch (error) {
       console.error('Error loading vouchers:', error);
     } finally {
@@ -170,7 +144,7 @@ const VoucherList: React.FC = () => {
 
   useEffect(() => {
     loadVouchers();
-  }, [page, rowsPerPage]);
+  }, []);
 
   const handleViewVoucher = (id: number) => {
     navigate(`/vouchers/${id}`);
@@ -178,20 +152,6 @@ const VoucherList: React.FC = () => {
 
   const handleEditVoucher = (id: number) => {
     navigate(`/vouchers/${id}/edit`);
-  };
-
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
-    setPage(0);
   };
 
   const handleCreateVoucher = () => {
@@ -203,20 +163,9 @@ const VoucherList: React.FC = () => {
   };
 
   const handleVoucherCreated = async (newVoucher: ServiceVoucher) => {
-    setPage(0); // Reset to first page
-    await loadVouchers(); // Reload the list to include the new voucher
+    await loadVouchers();
     setIsCreateModalOpen(false);
   };
-
-  // Filter vouchers based on search term
-  const filteredVouchers = vouchers.filter((voucher) =>
-    Object.values({
-      ...voucher,
-      travelerName: voucher.traveler.name,
-    }).some((value) =>
-      String(value).toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
 
   return (
     <Box sx={{ width: '100%', p: 3 }}>
@@ -227,28 +176,12 @@ const VoucherList: React.FC = () => {
         <Button
           variant="contained"
           color="primary"
-          startIcon={<AddIcon />}
+          startIcon={<EditIcon />}
           onClick={handleCreateVoucher}
         >
           Create Voucher
         </Button>
       </Box>
-
-      <TextField
-        fullWidth
-        variant="outlined"
-        placeholder="Search vouchers..."
-        value={searchTerm}
-        onChange={handleSearchChange}
-        sx={{ mb: 3 }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon />
-            </InputAdornment>
-          ),
-        }}
-      />
 
       <TableContainer component={Paper}>
         <Table>
@@ -268,12 +201,12 @@ const VoucherList: React.FC = () => {
               <TableRow>
                 <TableCell colSpan={7} align="center">Loading...</TableCell>
               </TableRow>
-            ) : filteredVouchers.length === 0 ? (
+            ) : vouchers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} align="center">No vouchers found</TableCell>
               </TableRow>
             ) : (
-              filteredVouchers.map((voucher) => (
+              vouchers.map((voucher: ServiceVoucher) => (
                 <ExpandableRow
                   key={voucher.id}
                   voucher={voucher}
@@ -285,16 +218,6 @@ const VoucherList: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
-
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
-        component="div"
-        count={totalCount}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
 
       <CreateVoucherModal
         open={isCreateModalOpen}

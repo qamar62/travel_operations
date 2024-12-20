@@ -27,6 +27,7 @@ import {
   AttachMoney,
 } from '@mui/icons-material';
 import { fetchServiceVouchers } from '../../services/voucherService';
+import { ServiceVoucher } from '../../types';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 const mockChartData = [
@@ -37,16 +38,6 @@ const mockChartData = [
   { name: 'May', bookings: 56 },
   { name: 'Jun', bookings: 95 },
 ];
-
-interface ServiceVoucher {
-  id: number;
-  traveler: {
-    name: string;
-  };
-  hotel_name: string;
-  travel_start_date: string;
-  transfer_type: string;
-}
 
 const Dashboard: React.FC = () => {
   const [vouchers, setVouchers] = useState<ServiceVoucher[]>([]);

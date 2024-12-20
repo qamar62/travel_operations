@@ -1,12 +1,15 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
-import PhoneIcon from '@mui/icons-material/Phone';
-import Badge from '@mui/material/Badge';
+import React from 'react';
 import {
   Box,
   Button,
   CircularProgress,
   Typography,
+  Grid,
+  Chip,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
 } from '@mui/material';
 import {
   Print as PrintIcon,
@@ -15,12 +18,17 @@ import {
 } from '@mui/icons-material';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { ServiceVoucher } from '../../services/voucherService';
+import { ServiceVoucher, RoomAllocation, ItineraryItem, ItineraryActivity } from '../../types';
+import { useParams } from 'react-router-dom';
 import { api } from '../../services/api';
 import './VoucherDetail.css';
 
 interface VoucherResponse {
   service_voucher: ServiceVoucher;
+}
+
+interface VoucherDetailProps {
+  // Not needed in this component
 }
 
 const VoucherDetail: React.FC = () => {
@@ -103,6 +111,99 @@ const VoucherDetail: React.FC = () => {
     );
   }
 
+  const renderRoomAllocations = (rooms: RoomAllocation[]) => {
+    return rooms.map((room: RoomAllocation) => (
+      `${room.quantity}x ${room.room_type_display}`
+    ));
+  };
+
+  const renderInclusions = (inclusions: string) => {
+    return inclusions.split('.').map((inclusion: string, index: number) => (
+      <li key={index} style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+        <span style={{ color: 'green', marginRight: '8px' }}>✓</span>
+        {inclusion.trim()}
+      </li>
+    ));
+  };
+
+  const renderItineraryItems = (items: ItineraryItem[]) => {
+    return items.map((item: ItineraryItem) => (
+      <div key={item.id} className="itinerary-day">
+        <div className="itinerary-day-header">
+          <Typography variant="h6">
+            Day {item.day} - {new Date(item.date).toLocaleDateString()}
+          </Typography>
+        </div>
+        
+        {item.activities?.map(activity => (
+          <div key={activity.id} className="activity-block">
+            <div className="activity-time">
+              {new Date(`2000-01-01T${activity.time}`).toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              })}
+            </div>
+            <div className="activity-content">
+              <div className="activity-description">
+                <Typography variant="body1">
+                  {activity.description}
+                </Typography>
+                {activity.location && (
+                  <Typography className="activity-location">
+                    📍 {activity.location}
+                  </Typography>
+                )}
+                {activity.notes && (
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    Note: {activity.notes}
+                  </Typography>
+                )}
+              </div>
+              <span className="activity-type-badge">
+                {activity.activity_type_display}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    ));
+  };
+
+  const renderActivities = (activities: ItineraryActivity[]) => {
+    return activities.map((activity: ItineraryActivity) => (
+      <div key={activity.id} className="activity-block">
+        <div className="activity-time">
+          {new Date(`2000-01-01T${activity.time}`).toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          })}
+        </div>
+        <div className="activity-content">
+          <div className="activity-description">
+            <Typography variant="body1">
+              {activity.description}
+            </Typography>
+            {activity.location && (
+              <Typography className="activity-location">
+                📍 {activity.location}
+              </Typography>
+            )}
+            {activity.notes && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                Note: {activity.notes}
+              </Typography>
+            )}
+          </div>
+          <span className="activity-type-badge">
+            {activity.activity_type_display}
+          </span>
+        </div>
+      </div>
+    ));
+  };
+
   return (
     <Box p={3}>
       <Box display="flex" justifyContent="flex-end" mb={3} className="no-print">
@@ -161,9 +262,7 @@ const VoucherDetail: React.FC = () => {
                 <tr>
                   <th>No Of Rooms</th>
                   <td>
-                    {voucher.room_allocations?.map((room) => (
-                      `${room.quantity}x ${room.room_type_display}`
-                    )).join(', ')}
+                    {renderRoomAllocations(voucher.room_allocations)}
                   </td>
                 </tr>
                 <tr>
@@ -186,12 +285,7 @@ const VoucherDetail: React.FC = () => {
                   <th>Inclusions</th>
                   <td>
                     <ul style={{ listStyleType: 'none', padding: 0, margin: 0 }}>
-                      {voucher.inclusions.split('.').map((inclusion, index) => (
-                        <li key={index} style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                          <span style={{ color: 'green', marginRight: '8px' }}>✓</span>
-                          {inclusion.trim()}
-                        </li>
-                      ))}
+                      {renderInclusions(voucher.inclusions)}
                     </ul>
                   </td>
                 </tr>
@@ -238,47 +332,7 @@ const VoucherDetail: React.FC = () => {
           </div>
 
           <div className="itinerary-content">
-            {voucher.itinerary_items?.map((item) => (
-              <div key={item.id} className="itinerary-day">
-                <div className="itinerary-day-header">
-                  <Typography variant="h6">
-                    Day {item.day} - {new Date(item.date).toLocaleDateString()}
-                  </Typography>
-                </div>
-                
-                {item.activities?.map(activity => (
-                  <div key={activity.id} className="activity-block">
-                    <div className="activity-time">
-                      {new Date(`2000-01-01T${activity.time}`).toLocaleTimeString('en-US', {
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        hour12: true
-                      })}
-                    </div>
-                    <div className="activity-content">
-                      <div className="activity-description">
-                        <Typography variant="body1">
-                          {activity.description}
-                        </Typography>
-                        {activity.location && (
-                          <Typography className="activity-location">
-                            📍 {activity.location}
-                          </Typography>
-                        )}
-                        {activity.notes && (
-                          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                            Note: {activity.notes}
-                          </Typography>
-                        )}
-                      </div>
-                      <span className="activity-type-badge">
-                        {activity.activity_type_display}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ))}
+            {renderItineraryItems(voucher.itinerary_items)}
           </div>
 
           {/* Emergency contacts for itinerary pages */}

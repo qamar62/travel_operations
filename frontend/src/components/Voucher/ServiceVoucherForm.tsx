@@ -319,9 +319,9 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
     });
   };
 
-  const handleActivityTypeChange = (activity: ItineraryActivity, activityIndex: number, e: SelectChangeEvent) => {
+  const handleActivityTypeChange = (activity: ItineraryActivity, activityIndex: number, e: SelectChangeEvent<string>) => {
     const newItems = [...formData.itinerary_items];
-    const selectedType = e.target.value as string;
+    const selectedType = e.target.value;
     newItems[activityIndex].activities[activityIndex] = {
       ...newItems[activityIndex].activities[activityIndex],
       activity_type: selectedType,
