@@ -31,7 +31,7 @@ import {
 
 interface ServiceVoucherFormProps {
   initialData?: ServiceVoucher;
-  onSubmit: (data: ServiceVoucher) => void;
+  onSubmit: (data: CreateServiceVoucherInput) => void;
   onCancel: () => void;
   isOpen: boolean;
   mode: 'create' | 'edit';
@@ -74,37 +74,40 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
   isOpen,
   mode
 }) => {
-  const initialFormData: CreateServiceVoucherInput = {
-    traveler: {
-      name: '',
-      num_adults: 1,
-      num_infants: 0,
-      contact_email: '',
-      contact_phone: '',
-    },
-    reservation_number: '',
-    hotel_name: '',
-    hotel_confirmation_number: '',
-    travel_start_date: '',
-    travel_end_date: '',
-    transfer_type: '',
-    meal_plan: '',
-    inclusions: '',
-    arrival_details: '',
-    departure_details: '',
-    meeting_point: '',
-    room_allocations: [],
-    itinerary_items: [],
-    total_rooms: 0,
-    transfer_type_display: '',
-    meal_plan_display: ''
-  };
-
-  const [formData, setFormData] = useState<CreateServiceVoucherInput>(initialFormData);
+  const [formData, setFormData] = useState<CreateServiceVoucherInput>(() => {
+    if (initialData) {
+      const { id, ...rest } = initialData;
+      return rest;
+    }
+    return {
+      traveler: {
+        name: '',
+        num_adults: 1,
+        num_infants: 0,
+        contact_email: '',
+        contact_phone: '',
+      },
+      room_allocations: [],
+      itinerary_items: [],
+      travel_start_date: '',
+      travel_end_date: '',
+      reservation_number: '',
+      hotel_name: '',
+      total_rooms: 0,
+      transfer_type: '',
+      meal_plan: '',
+      inclusions: '',
+      arrival_details: '',
+      departure_details: '',
+      meeting_point: '',
+      hotel_confirmation_number: '',
+    };
+  });
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      const { id, ...rest } = initialData;
+      setFormData(rest);
     }
   }, [initialData]);
 
@@ -316,12 +319,13 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
     });
   };
 
-  const handleActivityTypeChange = (activity: ItineraryActivity, activityIndex: number) => {
+  const handleActivityTypeChange = (activity: ItineraryActivity, activityIndex: number, e: SelectChangeEvent) => {
     const newItems = [...formData.itinerary_items];
+    const selectedType = e.target.value as string;
     newItems[activityIndex].activities[activityIndex] = {
       ...newItems[activityIndex].activities[activityIndex],
-      activity_type: activity.activity_type,
-      activity_type_display: ACTIVITY_TYPES.find(type => type.value === activity.activity_type)?.label || '',
+      activity_type: selectedType,
+      activity_type_display: ACTIVITY_TYPES.find(type => type.value === selectedType)?.label || '',
     };
     setFormData({
       ...formData,
@@ -659,7 +663,7 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
                         <Select
                           name="activity_type"
                           value={activity.activity_type}
-                          onChange={handleSelectChange}
+                          onChange={(e) => handleActivityTypeChange(activity, activityIndex, e)}
                           label="Activity Type"
                         >
                           {ACTIVITY_TYPES.map(type => (

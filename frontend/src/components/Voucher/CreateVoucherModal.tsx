@@ -8,7 +8,8 @@ import {
   Alert,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { ServiceVoucher, createServiceVoucher } from '../../services/voucherService';
+import { createServiceVoucher } from '../../services/voucherService';
+import { ServiceVoucher, CreateServiceVoucherInput } from '../../types';
 import ServiceVoucherForm from './ServiceVoucherForm';
 
 interface CreateVoucherModalProps {
@@ -25,18 +26,14 @@ const CreateVoucherModal: React.FC<CreateVoucherModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = async (data: ServiceVoucher) => {
+  const handleSubmit = async (data: CreateServiceVoucherInput) => {
     try {
       const createdVoucher = await createServiceVoucher(data);
       onVoucherCreated(createdVoucher);
       setSuccess(true);
-      setTimeout(() => {
-        onClose();
-        setSuccess(false);
-      }, 1500);
-    } catch (error) {
-      console.error('Error creating voucher:', error);
-      setError('Failed to create voucher. Please try again.');
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 

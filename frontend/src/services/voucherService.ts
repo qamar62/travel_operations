@@ -1,78 +1,22 @@
 import axios from 'axios';
 import { api } from './api';
+import { ServiceVoucher, CreateServiceVoucherInput } from '../types';
 
 const API_URL = 'http://127.0.0.1:8000/api';
 
-export interface Traveler {
-  id: number; // Required
-  name: string;
-  num_adults: number;
-  num_infants: number;
-  contact_email?: string; // Optional
-  contact_phone?: string; // Optional
-}
-
-export interface RoomAllocation {
-  id: number;
-  room_type: string;
-  room_type_display: string;
-  quantity: number;
-}
-
-export interface ItineraryActivity {
-  id: number;
-  time: string;
-  activity_type: string;
-  activity_type_display: string; // Added for display purposes
-  description: string;
-  location: string;
-  notes: string;
-}
-
-export interface ItineraryItem {
-  id: number;
-  day: number;
-  date: string;
-  time: string; // Added time property
-  activities: ItineraryActivity[]; // Ensure activities property is included
-}
-
-export interface ServiceVoucher {
-  id: number;
-  traveler: Traveler;
-  room_allocations: RoomAllocation[];
-  itinerary_items: ItineraryItem[]; // Ensure itinerary_items includes activities
-  travel_start_date: string;
-  travel_end_date: string;
-  reservation_number: string;
-  hotel_name: string;
-  total_rooms: number; // Added property
-  transfer_type_display: string; // Added property
-  meal_plan_display: string; // Added property
-  hotel_confirmation_number: string; // Added property
-  transfer_type: string; // Added property
-  meal_plan: string; // Added property
-  inclusions: string; // Added property
-  arrival_details: string; // Added property
-  departure_details: string; // Added property
-  meeting_point: string; // Added property
-}
-
-export interface ApiResponse {
+interface ApiResponse {
   count: number;
   next: string | null;
   previous: string | null;
   results: ServiceVoucher[];
 }
 
-export const fetchServiceVouchers = async (page: number = 1, pageSize: number = 10): Promise<ApiResponse> => {
+export const fetchServiceVouchers = async (
+  page: number = 1,
+  pageSize: number = 10
+): Promise<ApiResponse> => {
   try {
-    const response = await api.get<ApiResponse>('/service-vouchers/', {
-      params: {
-        page,
-        page_size: pageSize
-      }
-    });
+    const response = await api.get(`/vouchers/?page=${page}&page_size=${pageSize}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching service vouchers:', error);
@@ -80,16 +24,36 @@ export const fetchServiceVouchers = async (page: number = 1, pageSize: number = 
   }
 };
 
-export const createServiceVoucher = async (voucher: ServiceVoucher) => {
-  const response = await api.post<ServiceVoucher>('/service-vouchers/', voucher);
-  return response.data;
+export const createServiceVoucher = async (
+  voucher: CreateServiceVoucherInput
+): Promise<ServiceVoucher> => {
+  try {
+    const response = await api.post('/vouchers/', voucher);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating service voucher:', error);
+    throw new Error('Failed to create service voucher');
+  }
 };
 
-export const updateServiceVoucher = async (id: number, voucher: ServiceVoucher) => {
-  const response = await api.put<ServiceVoucher>(`/service-vouchers/${id}/`, voucher);
-  return response.data;
+export const updateServiceVoucher = async (
+  id: number,
+  voucher: Partial<ServiceVoucher>
+): Promise<ServiceVoucher> => {
+  try {
+    const response = await api.put(`/vouchers/${id}/`, voucher);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating service voucher:', error);
+    throw new Error('Failed to update service voucher');
+  }
 };
 
-export const deleteServiceVoucher = async (id: number) => {
-  await api.delete(`/service-vouchers/${id}/`);
+export const deleteServiceVoucher = async (id: number): Promise<void> => {
+  try {
+    await api.delete(`/vouchers/${id}/`);
+  } catch (error) {
+    console.error('Error deleting service voucher:', error);
+    throw new Error('Failed to delete service voucher');
+  }
 };
