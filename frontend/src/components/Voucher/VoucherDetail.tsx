@@ -34,7 +34,7 @@ const VoucherDetail: React.FC = () => {
       try {
         const response = await api.get<VoucherResponse>(`/service-vouchers/${id}/`);
         console.log('Fetched voucher:', response.data);
-        setVoucher(response.data); // Remove .service_voucher since the response is already the voucher
+        setVoucher(response.data.service_voucher); 
       } catch (error) {
         console.error('Failed to fetch voucher:', error);
       } finally {

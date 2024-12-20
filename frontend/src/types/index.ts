@@ -1,5 +1,4 @@
-export interface Traveler {
-  id: number; // Changed to required
+export interface BaseTraveler {
   name: string;
   num_adults: number;
   num_infants: number;
@@ -7,43 +6,50 @@ export interface Traveler {
   contact_phone?: string;
 }
 
+export interface Traveler extends BaseTraveler {
+  id?: number | null;
+}
+
+export interface CreateTravelerInput extends BaseTraveler {
+  id?: never;
+}
+
 export interface RoomAllocation {
-  id: number;
+  id?: number | null;
   room_type: string;
-  room_type_display: string;
+  room_type_display?: string;
   quantity: number;
 }
 
 export interface ItineraryActivity {
-  id: number;
+  id?: number | null;
   time: string;
   activity_type: string;
-  activity_type_display: string; // Added for display purposes
+  activity_type_display?: string; // Added for display purposes
   description: string;
   location: string;
   notes: string;
 }
 
 export interface ItineraryItem {
-  id: number;
+  id?: number | null;
   day: number;
   date: string;
   time: string; // Added time property
   activities: ItineraryActivity[]; // Ensure activities property is included
 }
 
-export interface ServiceVoucher {
-  id: number;
-  traveler: Traveler;
+export interface BaseServiceVoucher {
+  traveler: BaseTraveler;
   room_allocations: RoomAllocation[];
-  itinerary_items: ItineraryItem[]; // Ensure itinerary_items includes activities
+  itinerary_items: ItineraryItem[];
   travel_start_date: string;
   travel_end_date: string;
   reservation_number: string;
   hotel_name: string;
   total_rooms: number;
-  transfer_type_display: string;
-  meal_plan_display: string;
+  transfer_type_display?: string;
+  meal_plan_display?: string;
   hotel_confirmation_number: string;
   transfer_type: string;
   meal_plan: string;
@@ -53,10 +59,14 @@ export interface ServiceVoucher {
   meeting_point: string;
 }
 
-// New interface for creating a voucher (omits id and other server-generated fields)
-export type CreateServiceVoucherInput = Omit<ServiceVoucher, 'id'> & {
+export interface ServiceVoucher extends BaseServiceVoucher {
+  id?: number | null;
+  traveler: Traveler;
+}
+
+export interface CreateServiceVoucherInput extends BaseServiceVoucher {
   id?: never;
-};
+}
 
 export interface Booking {
   id?: number;

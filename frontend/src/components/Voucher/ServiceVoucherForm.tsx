@@ -17,7 +17,8 @@ import {
   MenuItem,
   Chip,
   Fab,
-  Zoom
+  Zoom,
+  SelectChangeEvent
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { ServiceVoucher, RoomAllocation, ItineraryItem, ItineraryActivity } from '../../services/voucherService';
@@ -67,7 +68,7 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
   isOpen,
   mode
 }) => {
-  const [formData, setFormData] = useState<ServiceVoucher>(initialData || {
+  const initialFormData: CreateServiceVoucherInput = {
     traveler: {
       name: '',
       num_adults: 1,
@@ -80,15 +81,20 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
     hotel_confirmation_number: '',
     travel_start_date: '',
     travel_end_date: '',
-    transfer_type: 'PRIVATE',
-    meal_plan: 'BB',
+    transfer_type: '',
+    meal_plan: '',
     inclusions: '',
     arrival_details: '',
     departure_details: '',
     meeting_point: '',
     room_allocations: [],
     itinerary_items: [],
-  } as ServiceVoucher);
+    total_rooms: 0,
+    transfer_type_display: '',
+    meal_plan_display: ''
+  };
+
+  const [formData, setFormData] = useState<CreateServiceVoucherInput>(initialFormData);
 
   useEffect(() => {
     if (initialData) {
@@ -96,7 +102,7 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
     }
   }, [initialData]);
 
-  const handleChange = (field: keyof ServiceVoucher) => (
+  const handleChange = (field: keyof CreateServiceVoucherInput) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setFormData({
@@ -115,6 +121,28 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
         [field]: field.includes('num_') ? Number(e.target.value) : e.target.value,
       },
     });
+  };
+
+  const handleSelectChange = (e: SelectChangeEvent<string>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleTransferTypeChange = (e: SelectChangeEvent<string>) => {
+    setFormData((prev) => ({
+      ...prev,
+      transfer_type: e.target.value,
+    }));
+  };
+
+  const handleMealPlanChange = (e: SelectChangeEvent<string>) => {
+    setFormData((prev) => ({
+      ...prev,
+      meal_plan: e.target.value,
+    }));
   };
 
   const addRoomAllocation = () => {
@@ -231,9 +259,23 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    try {
+      const voucherData: Omit<ServiceVoucher, 'id'> = {
+        ...formData,
+        total_rooms: formData.room_allocations.reduce((sum, room) => sum + room.quantity, 0),
+      };
+      
+      if (mode === 'edit') {
+        // await updateServiceVoucher(voucherId, voucherData);
+      } else {
+        // await createServiceVoucher(voucherData as CreateServiceVoucherInput);
+      }
+      // navigate('/vouchers');
+    } catch (error) {
+      console.error('Error saving voucher:', error);
+    }
   };
 
   return (
@@ -341,8 +383,9 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
             <FormControl fullWidth>
               <InputLabel>Transfer Type</InputLabel>
               <Select
+                name="transfer_type"
                 value={formData.transfer_type}
-                onChange={handleChange('transfer_type')}
+                onChange={handleTransferTypeChange}
                 label="Transfer Type"
               >
                 {TRANSFER_TYPES.map(type => (
@@ -357,8 +400,9 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
             <FormControl fullWidth>
               <InputLabel>Meal Plan</InputLabel>
               <Select
+                name="meal_plan"
                 value={formData.meal_plan}
-                onChange={handleChange('meal_plan')}
+                onChange={handleMealPlanChange}
                 label="Meal Plan"
               >
                 {MEAL_PLANS.map(plan => (
@@ -414,8 +458,9 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
                 <FormControl fullWidth>
                   <InputLabel>Room Type</InputLabel>
                   <Select
+                    name="room_type"
                     value={room.room_type}
-                    onChange={handleRoomChange(index, 'room_type')}
+                    onChange={handleSelectChange}
                     label="Room Type"
                     required
                   >
@@ -549,8 +594,9 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
                       <FormControl fullWidth>
                         <InputLabel>Activity Type</InputLabel>
                         <Select
+                          name="activity_type"
                           value={activity.activity_type}
-                          onChange={handleActivityChange(index, activityIndex, 'activity_type')}
+                          onChange={handleSelectChange}
                           label="Activity Type"
                         >
                           {ACTIVITY_TYPES.map(type => (

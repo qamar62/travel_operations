@@ -71,8 +71,12 @@ const BookingDetails: React.FC = () => {
             <div className="space-y-2">
               {booking.itinerary_items.map(item => (
                 <div key={item.id} className="bg-gray-100 p-3 rounded">
-                  <p><strong>Day {item.day}:</strong> {item.title}</p>
-                  <p>{item.date} at {item.time}</p>
+                  <p><strong>Day {item.day}:</strong> {item.date}</p>
+                  {item.activities.map((activity, activityIndex) => (
+                    <div key={activityIndex} className="ml-2 mb-1">
+                      <p><strong>{activity.time}:</strong> {activity.description}</p>
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>
