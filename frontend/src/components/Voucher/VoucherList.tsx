@@ -16,6 +16,12 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Tooltip,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
+  Collapse,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -26,6 +32,17 @@ import { useNavigate } from 'react-router-dom';
 import { fetchServiceVouchers, deleteServiceVoucher } from '../../services/voucherService';
 import { ServiceVoucher, ItineraryItem, ItineraryActivity } from '../../types';
 import CreateVoucherModal from './CreateVoucherModal';
+
+// Utility functions for status
+const getVoucherStatus = (startDate: string, endDate: string): { status: string; color: 'success' | 'info' | 'default' } => {
+  const now = new Date();
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  if (now < start) return { status: 'Upcoming', color: 'info' };
+  if (now > end) return { status: 'Completed', color: 'default' };
+  return { status: 'Active', color: 'success' };
+};
 
 interface ExpandableRowProps {
   voucher: ServiceVoucher;
@@ -39,10 +56,11 @@ const ExpandableRow: React.FC<ExpandableRowProps> = ({
   handleEditVoucher,
 }) => {
   const [open, setOpen] = useState(false);
+  const voucherStatus = getVoucherStatus(voucher.travel_start_date, voucher.travel_end_date);
 
   return (
     <React.Fragment>
-      <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
+      <TableRow>
         <TableCell>
           <IconButton
             aria-label="expand row"
@@ -54,30 +72,29 @@ const ExpandableRow: React.FC<ExpandableRowProps> = ({
         </TableCell>
         <TableCell>{voucher.reservation_number}</TableCell>
         <TableCell>{voucher.traveler.name}</TableCell>
-        <TableCell>{voucher.hotel_name}</TableCell>
         <TableCell>{new Date(voucher.travel_start_date).toLocaleDateString()}</TableCell>
         <TableCell>
           <Chip
-            label={voucher.status}
-            color={voucher.status === 'active' ? 'success' : 'default'}
+            label={voucherStatus.status}
+            color={voucherStatus.color}
             size="small"
           />
         </TableCell>
         <TableCell>
           <Tooltip title="View Details">
-            <IconButton onClick={() => handleViewVoucher(voucher.id)}>
+            <IconButton onClick={() => voucher.id && handleViewVoucher(voucher.id)}>
               <ViewIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Edit">
-            <IconButton onClick={() => handleEditVoucher(voucher.id)}>
+            <IconButton onClick={() => voucher.id && handleEditVoucher(voucher.id)}>
               <EditIcon />
             </IconButton>
           </Tooltip>
         </TableCell>
       </TableRow>
       <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 1 }}>
               <Typography variant="h6" gutterBottom component="div">
@@ -103,7 +120,7 @@ const ExpandableRow: React.FC<ExpandableRowProps> = ({
                         }
                       />
                     </ListItem>
-                    <Divider component="li" />
+                    <Divider />
                   </React.Fragment>
                 ))}
               </List>
@@ -190,7 +207,6 @@ const VoucherList: React.FC = () => {
               <TableCell />
               <TableCell>Reservation #</TableCell>
               <TableCell>Traveler</TableCell>
-              <TableCell>Hotel</TableCell>
               <TableCell>Travel Date</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Actions</TableCell>
@@ -199,11 +215,11 @@ const VoucherList: React.FC = () => {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} align="center">Loading...</TableCell>
+                <TableCell colSpan={6} align="center">Loading...</TableCell>
               </TableRow>
             ) : vouchers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} align="center">No vouchers found</TableCell>
+                <TableCell colSpan={6} align="center">No vouchers found</TableCell>
               </TableRow>
             ) : (
               vouchers.map((voucher: ServiceVoucher) => (

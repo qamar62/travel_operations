@@ -1,77 +1,85 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Box,
-  CircularProgress,
-  Container,
-  Typography,
-} from '@mui/material';
-import { ServiceVoucher, fetchServiceVouchers, updateServiceVoucher } from '../../services/voucherService';
+import { Box, Typography, CircularProgress } from '@mui/material';
 import ServiceVoucherForm from './ServiceVoucherForm';
+import { updateServiceVoucher } from '../../services/voucherService';
+import { api } from '../../services/api';
+import { ServiceVoucher } from '../../types';
 
 const VoucherEdit: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [voucher, setVoucher] = useState<ServiceVoucher | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadVoucher = async () => {
+    const fetchVoucher = async () => {
       try {
-        const response = await fetchServiceVouchers();
-        const foundVoucher = response.results.find(v => v.id === Number(id));
-        if (foundVoucher) {
-          setVoucher(foundVoucher);
-        }
-      } catch (err) {
-        console.error('Error loading voucher:', err);
+        setLoading(true);
+        const response = await api.get(`/vouchers/${id}/`);
+        setVoucher(response.data);
+      } catch (error) {
+        console.error('Error fetching voucher:', error);
+        setError('Failed to load voucher');
       } finally {
         setLoading(false);
       }
     };
 
     if (id) {
-      loadVoucher();
+      fetchVoucher();
     }
   }, [id]);
 
   const handleSubmit = async (data: ServiceVoucher) => {
     try {
-      await updateServiceVoucher(Number(id), data);
-      navigate(`/vouchers/${id}`);
-    } catch (err) {
-      console.error('Error updating voucher:', err);
+      if (!id) throw new Error('No voucher ID provided');
+      await updateServiceVoucher(parseInt(id), data);
+      navigate('/vouchers');
+    } catch (error) {
+      console.error('Error updating voucher:', error);
+      setError('Failed to update voucher');
     }
-  };
-
-  const handleCancel = () => {
-    navigate(`/vouchers/${id}`);
   };
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
         <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box p={3}>
+        <Typography color="error">{error}</Typography>
       </Box>
     );
   }
 
   if (!voucher) {
     return (
-      <Container>
-        <Typography color="error">Voucher not found</Typography>
-      </Container>
+      <Box p={3}>
+        <Typography>Voucher not found</Typography>
+      </Box>
     );
   }
 
   return (
-    <ServiceVoucherForm
-      initialData={voucher}
-      onSubmit={handleSubmit}
-      onCancel={handleCancel}
-      isOpen={true}
-      mode="edit"
-    />
+    <Box p={3}>
+      <Typography variant="h4" gutterBottom>
+        Edit Voucher
+      </Typography>
+      <ServiceVoucherForm
+        initialData={voucher}
+        onSubmit={handleSubmit}
+        onCancel={() => navigate('/vouchers')}
+        isOpen={true}
+        mode="edit"
+      />
+    </Box>
   );
 };
 
