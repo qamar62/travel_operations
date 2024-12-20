@@ -35,27 +35,27 @@ api.interceptors.response.use(
 );
 
 export const fetchServiceVouchers = async () => {
-  const response = await api.get<{results: ServiceVoucher[]}>('/vouchers/');
+  const response = await api.get<{results: ServiceVoucher[]}>('/service-vouchers/');
   return response.data.results;
 };
 
 export const fetchServiceVoucherById = async (id: number) => {
-  const response = await api.get<ServiceVoucher>(`/vouchers/${id}/`);
+  const response = await api.get<ServiceVoucher>(`/service-vouchers/${id}/`);
   return response.data;
 };
 
 export const createServiceVoucher = async (voucher: CreateServiceVoucherInput) => {
-  const response = await api.post<ServiceVoucher>(`/vouchers/`, voucher);
+  const response = await api.post<ServiceVoucher>('/service-vouchers/', voucher);
   return response.data;
 };
 
 export const updateServiceVoucher = async (id: number, voucher: Partial<ServiceVoucher>) => {
-  const response = await api.patch<ServiceVoucher>(`/vouchers/${id}/`, voucher);
+  const response = await api.patch<ServiceVoucher>(`/service-vouchers/${id}/`, voucher);
   return response.data;
 };
 
 export const deleteServiceVoucher = async (id: number) => {
-  await api.delete(`/vouchers/${id}/`);
+  await api.delete(`/service-vouchers/${id}/`);
 };
 
 // Booking related API calls
