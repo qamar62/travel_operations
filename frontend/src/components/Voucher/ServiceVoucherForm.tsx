@@ -21,7 +21,13 @@ import {
   SelectChangeEvent
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import { ServiceVoucher, RoomAllocation, ItineraryItem, ItineraryActivity } from '../../services/voucherService';
+import { 
+  ServiceVoucher, 
+  RoomAllocation, 
+  ItineraryItem, 
+  ItineraryActivity,
+  CreateServiceVoucherInput 
+} from '../../types';
 
 interface ServiceVoucherFormProps {
   initialData?: ServiceVoucher;
@@ -167,10 +173,10 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
     });
   };
 
-  const handleRoomChange = (index: number, field: keyof RoomAllocation) => (
+  const handleRoomTypeChange = (prev: CreateServiceVoucherInput, index: number, field: keyof RoomAllocation) => (
     e: React.ChangeEvent<HTMLInputElement | { value: unknown }>
   ) => {
-    const newRooms = [...formData.room_allocations];
+    const newRooms = [...prev.room_allocations];
     newRooms[index] = {
       ...newRooms[index],
       [field]: field === 'quantity' ? Number(e.target.value) : e.target.value,
@@ -179,7 +185,21 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
         : newRooms[index].room_type_display,
     };
     setFormData({
-      ...formData,
+      ...prev,
+      room_allocations: newRooms,
+    });
+  };
+
+  const handleQuantityChange = (prev: CreateServiceVoucherInput, index: number) => (
+    e: React.ChangeEvent<HTMLInputElement | { value: unknown }>
+  ) => {
+    const newRooms = [...prev.room_allocations];
+    newRooms[index] = {
+      ...newRooms[index],
+      quantity: Number(e.target.value),
+    };
+    setFormData({
+      ...prev,
       room_allocations: newRooms,
     });
   };
@@ -259,12 +279,62 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
     });
   };
 
+  const handleDateChange = (prev: CreateServiceVoucherInput, index: number) => (
+    e: React.ChangeEvent<HTMLInputElement | { value: unknown }>
+  ) => {
+    const newItems = [...prev.itinerary_items];
+    newItems[index].date = e.target.value;
+    setFormData({
+      ...prev,
+      itinerary_items: newItems,
+    });
+  };
+
+  const calculateTotalRooms = (rooms: RoomAllocation[]): number => {
+    return rooms.reduce((sum: number, room: RoomAllocation) => sum + room.quantity, 0);
+  };
+
+  const handleRoomDelete = (room: RoomAllocation, index: number) => {
+    const newRooms = [...formData.room_allocations];
+    newRooms.splice(index, 1);
+    setFormData({
+      ...formData,
+      room_allocations: newRooms,
+    });
+  };
+
+  const handleActivityDelete = (item: ItineraryItem, index: number) => {
+    const newItems = [...formData.itinerary_items];
+    newItems.splice(index, 1);
+    // Recalculate days
+    newItems.forEach((item, idx) => {
+      item.day = idx + 1;
+    });
+    setFormData({
+      ...formData,
+      itinerary_items: newItems,
+    });
+  };
+
+  const handleActivityTypeChange = (activity: ItineraryActivity, activityIndex: number) => {
+    const newItems = [...formData.itinerary_items];
+    newItems[activityIndex].activities[activityIndex] = {
+      ...newItems[activityIndex].activities[activityIndex],
+      activity_type: activity.activity_type,
+      activity_type_display: ACTIVITY_TYPES.find(type => type.value === activity.activity_type)?.label || '',
+    };
+    setFormData({
+      ...formData,
+      itinerary_items: newItems,
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const voucherData: Omit<ServiceVoucher, 'id'> = {
         ...formData,
-        total_rooms: formData.room_allocations.reduce((sum, room) => sum + room.quantity, 0),
+        total_rooms: calculateTotalRooms(formData.room_allocations),
       };
       
       if (mode === 'edit') {
@@ -460,7 +530,7 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
                   <Select
                     name="room_type"
                     value={room.room_type}
-                    onChange={handleSelectChange}
+                    onChange={(e) => handleRoomTypeChange(formData, index, 'room_type')(e)}
                     label="Room Type"
                     required
                   >
@@ -478,13 +548,13 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
                   label="Quantity"
                   type="number"
                   value={room.quantity}
-                  onChange={handleRoomChange(index, 'quantity')}
+                  onChange={(e) => handleQuantityChange(formData, index)(e)}
                   InputProps={{ inputProps: { min: 1 } }}
                 />
               </Grid>
               <Grid item xs={12} sm={2}>
                 <IconButton
-                  onClick={() => removeRoomAllocation(index)}
+                  onClick={() => handleRoomDelete(room, index)}
                   color="error"
                 >
                   <DeleteIcon />
@@ -535,7 +605,7 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography variant="h6">Day {item.day}</Typography>
               <IconButton 
-                onClick={() => removeItineraryItem(index)}
+                onClick={() => handleActivityDelete(item, index)}
                 color="error"
                 size="small"
               >
@@ -550,14 +620,7 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
                   type="date"
                   label="Date"
                   value={item.date}
-                  onChange={(e) => {
-                    const newItems = [...formData.itinerary_items];
-                    newItems[index].date = e.target.value;
-                    setFormData({
-                      ...formData,
-                      itinerary_items: newItems,
-                    });
-                  }}
+                  onChange={(e) => handleDateChange(formData, index)(e)}
                   InputLabelProps={{ shrink: true }}
                 />
               </Grid>
