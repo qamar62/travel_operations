@@ -1,7 +1,13 @@
 import axios from 'axios';
 import { ServiceVoucher, CreateServiceVoucherInput, Booking } from '../types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://admin.ant.ae/api';
+// Get the API URL from environment variables
+const isDevelopment = import.meta.env.MODE === 'development';
+const API_URL = isDevelopment 
+  ? 'http://127.0.0.1:8000/api'
+  : 'https://admin.ant.ae/api';
+
+console.log('Current API URL:', API_URL); // For debugging
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -9,6 +15,24 @@ export const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Add request interceptor for debugging
+api.interceptors.request.use(request => {
+  console.log('Starting Request:', request.url);
+  return request;
+});
+
+// Add response interceptor for debugging
+api.interceptors.response.use(
+  response => {
+    console.log('Response:', response.status, response.data);
+    return response;
+  },
+  error => {
+    console.error('API Error:', error.response?.status, error.response?.data);
+    return Promise.reject(error);
+  }
+);
 
 export const fetchServiceVouchers = async () => {
   const response = await api.get<{results: ServiceVoucher[]}>('/vouchers/');
