@@ -22,9 +22,9 @@ schema_view = get_schema_view(
 
 router = DefaultRouter()
 router.register(r'travelers', TravelerViewSet)
-router.register(r'service-vouchers', ServiceVoucherViewSet)
+router.register(r'vouchers', ServiceVoucherViewSet)
 router.register(r'itinerary', ItineraryViewSet, basename='itinerary')
-router.register(r'itinerary-activities', ItineraryActivityViewSet, basename='itinerary-activity')  # Added this line
+router.register(r'itinerary-activities', ItineraryActivityViewSet, basename='itinerary-activity')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

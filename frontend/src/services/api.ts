@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ServiceVoucher, CreateServiceVoucherInput, Booking } from '../types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://admin.ant.ae/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -11,27 +11,27 @@ export const api = axios.create({
 });
 
 export const fetchServiceVouchers = async () => {
-  const response = await api.get<{results: ServiceVoucher[]}>(`/service-vouchers/`);
+  const response = await api.get<{results: ServiceVoucher[]}>('/vouchers/');
   return response.data.results;
 };
 
 export const fetchServiceVoucherById = async (id: number) => {
-  const response = await api.get<ServiceVoucher>(`/service-vouchers/${id}/`);
+  const response = await api.get<ServiceVoucher>(`/vouchers/${id}/`);
   return response.data;
 };
 
 export const createServiceVoucher = async (voucher: CreateServiceVoucherInput) => {
-  const response = await api.post<ServiceVoucher>(`/service-vouchers/`, voucher);
+  const response = await api.post<ServiceVoucher>(`/vouchers/`, voucher);
   return response.data;
 };
 
 export const updateServiceVoucher = async (id: number, voucher: Partial<ServiceVoucher>) => {
-  const response = await api.patch<ServiceVoucher>(`/service-vouchers/${id}/`, voucher);
+  const response = await api.patch<ServiceVoucher>(`/vouchers/${id}/`, voucher);
   return response.data;
 };
 
 export const deleteServiceVoucher = async (id: number) => {
-  await api.delete(`/service-vouchers/${id}/`);
+  await api.delete(`/vouchers/${id}/`);
 };
 
 // Booking related API calls
