@@ -278,7 +278,7 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
   };
 
   const handleDateChange = (prev: CreateServiceVoucherInput, index: number) => (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const newItems = [...prev.itinerary_items];
     newItems[index].date = e.target.value;
