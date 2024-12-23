@@ -83,19 +83,30 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
       traveler: {
         name: '',
         num_adults: 1,
+        num_children: 0,
         num_infants: 0,
         contact_email: '',
         contact_phone: '',
       },
-      room_allocations: [],
+      room_allocations: [{
+        id: Math.random(),
+        room_type: 'DBL',
+        room_type_display: 'Double Room',
+        quantity: 1,
+        num_adults: 2,
+        num_children: 0,
+        num_infants: 0
+      }],
       itinerary_items: [],
       travel_start_date: '',
       travel_end_date: '',
       reservation_number: '',
       hotel_name: '',
-      total_rooms: 0,
-      transfer_type: '',
-      meal_plan: '',
+      total_rooms: 1,
+      transfer_type: 'PRIVATE',
+      transfer_type_display: 'Private Transfer',
+      meal_plan: 'BB',
+      meal_plan_display: 'Bed & Breakfast',
       inclusions: '',
       arrival_details: '',
       departure_details: '',
@@ -160,6 +171,9 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
       room_type: 'DBL',
       room_type_display: 'Double Room',
       quantity: 1,
+      num_adults: 2,  // Default for double room
+      num_children: 0,
+      num_infants: 0
     };
     setFormData({
       ...formData,
