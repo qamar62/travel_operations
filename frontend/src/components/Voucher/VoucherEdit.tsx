@@ -17,7 +17,7 @@ const VoucherEdit: React.FC = () => {
     const fetchVoucher = async () => {
       try {
         setLoading(true);
-        const response = await api.get(`/vouchers/${id}/`);
+        const response = await api.get(`/service-vouchers/${id}/`);
         setVoucher(response.data);
       } catch (error) {
         console.error('Error fetching voucher:', error);
