@@ -103,24 +103,37 @@ const ExpandableRow: React.FC<ExpandableRowProps> = ({
               <List>
                 {voucher.itinerary_items.map((item: ItineraryItem) => (
                   <React.Fragment key={item.id}>
-                    <ListItem>
+                    <ListItem 
+                      sx={{
+                        backgroundColor: 'primary.main',
+                        color: 'white',
+                        borderRadius: 1,
+                        mb: 1,
+                      }}
+                    >
                       <ListItemText
-                        primary={`Day ${item.day} - ${new Date(item.date).toLocaleDateString()}`}
-                        secondary={
-                          <List>
-                            {item.activities.map((activity: ItineraryActivity) => (
-                              <ListItem key={activity.id}>
-                                <ListItemText
-                                  primary={`${activity.time} - ${activity.activity_type_display}`}
-                                  secondary={activity.description}
-                                />
-                              </ListItem>
-                            ))}
-                          </List>
+                        primary={
+                          <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'white' }}>
+                            {`Day ${item.day} - ${new Date(item.date).toLocaleDateString()}`}
+                          </Typography>
                         }
                       />
                     </ListItem>
-                    <Divider />
+                    <List sx={{ ml: 2, mb: 2 }}>
+                      {item.activities.map((activity: ItineraryActivity) => (
+                        <ListItem key={activity.id}>
+                          <ListItemText
+                            primary={
+                              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                {`${activity.time} - ${activity.activity_type_display}`}
+                              </Typography>
+                            }
+                            secondary={activity.description}
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                    <Divider sx={{ my: 2 }} />
                   </React.Fragment>
                 ))}
               </List>
