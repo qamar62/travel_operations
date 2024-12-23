@@ -26,33 +26,32 @@ import { useParams } from 'react-router-dom';
 import { api } from '../../services/api';
 import './VoucherDetail.css';
 
-interface VoucherResponse {
-  service_voucher: ServiceVoucher;
-}
-
-interface VoucherDetailProps {
-  // Not needed in this component
-}
-
 const VoucherDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [voucher, setVoucher] = useState<ServiceVoucher | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const voucherRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchVoucher = async () => {
       try {
-        const response = await api.get<VoucherResponse>(`/service-vouchers/${id}/`);
+        setLoading(true);
+        const response = await api.get<ServiceVoucher>(`/service-vouchers/${id}/`);
         console.log('Fetched voucher:', response.data);
-        setVoucher(response.data.service_voucher); 
+        setVoucher(response.data);
+        setError(null);
       } catch (error) {
         console.error('Failed to fetch voucher:', error);
+        setError('Failed to fetch voucher details');
       } finally {
         setLoading(false);
       }
     };
-    fetchVoucher();
+
+    if (id) {
+      fetchVoucher();
+    }
   }, [id]);
 
   const handlePrint = () => {
@@ -60,298 +59,183 @@ const VoucherDetail: React.FC = () => {
   };
 
   const handleDownloadPDF = async () => {
-    if (!voucherRef.current) return;
-
-    const pages = voucherRef.current.querySelectorAll('.voucher-page');
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-
-    for (let i = 0; i < pages.length; i++) {
-      if (i > 0) pdf.addPage();
-      
-      const canvas = await html2canvas(pages[i] as HTMLElement, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        width: 210 * 3.779527559,
-        height: 297 * 3.779527559,
-      });
-
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-    }
-
-    pdf.save(`service-voucher-${voucher?.reservation_number}.pdf`);
-  };
-
-  const handleShare = async () => {
-    if (!voucher) return;
-    try {
-      await navigator.share({
-        title: `Service Voucher - ${voucher.reservation_number}`,
-        text: `Service voucher for ${voucher.traveler?.name} at ${voucher.hotel_name}`,
-        url: window.location.href,
-      });
-    } catch (error) {
-      console.error('Error sharing:', error);
+    if (voucherRef.current) {
+      const canvas = await html2canvas(voucherRef.current);
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF();
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`voucher-${id}.pdf`);
     }
   };
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
         <CircularProgress />
       </Box>
     );
   }
 
-  if (!voucher) {
+  if (error || !voucher) {
     return (
-      <Box p={3}>
-        <Typography color="error">Voucher not found</Typography>
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+        <Typography color="error">{error || 'Voucher not found'}</Typography>
       </Box>
     );
   }
 
-  const renderRoomAllocations = (rooms: RoomAllocation[]) => {
-    return rooms.map((room: RoomAllocation) => (
-      `${room.quantity}x ${room.room_type_display}`
-    ));
-  };
-
-  const renderInclusions = (inclusions: string) => {
-    return inclusions.split('.').map((inclusion: string, index: number) => (
-      <li key={index} style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-        <span style={{ color: 'green', marginRight: '8px' }}>✓</span>
-        {inclusion.trim()}
-      </li>
-    ));
-  };
-
-  const renderItineraryItems = (items: ItineraryItem[]) => {
-    return items.map((item: ItineraryItem) => (
-      <div key={item.id} className="itinerary-day">
-        <div className="itinerary-day-header">
-          <Typography variant="h6">
-            Day {item.day} - {new Date(item.date).toLocaleDateString()}
-          </Typography>
-        </div>
-        
-        {item.activities?.map(activity => (
-          <div key={activity.id} className="activity-block">
-            <div className="activity-time">
-              {new Date(`2000-01-01T${activity.time}`).toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-              })}
-            </div>
-            <div className="activity-content">
-              <div className="activity-description">
-                <Typography variant="body1">
-                  {activity.description}
-                </Typography>
-                {activity.location && (
-                  <Typography className="activity-location">
-                    📍 {activity.location}
-                  </Typography>
-                )}
-                {activity.notes && (
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    Note: {activity.notes}
-                  </Typography>
-                )}
-              </div>
-              <span className="activity-type-badge">
-                {activity.activity_type_display}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-    ));
-  };
-
-  const renderActivities = (activities: ItineraryActivity[]) => {
-    return activities.map((activity: ItineraryActivity) => (
-      <div key={activity.id} className="activity-block">
-        <div className="activity-time">
-          {new Date(`2000-01-01T${activity.time}`).toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-          })}
-        </div>
-        <div className="activity-content">
-          <div className="activity-description">
-            <Typography variant="body1">
-              {activity.description}
-            </Typography>
-            {activity.location && (
-              <Typography className="activity-location">
-                📍 {activity.location}
-              </Typography>
-            )}
-            {activity.notes && (
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                Note: {activity.notes}
-              </Typography>
-            )}
-          </div>
-          <span className="activity-type-badge">
-            {activity.activity_type_display}
-          </span>
-        </div>
-      </div>
-    ));
-  };
-
   return (
-    <Box p={3}>
-      <Box display="flex" justifyContent="flex-end" mb={3} className="no-print">
-        <Button startIcon={<PrintIcon />} onClick={handlePrint} sx={{ mr: 1 }}>
-          Print
-        </Button>
-        <Button startIcon={<DownloadIcon />} onClick={handleDownloadPDF} sx={{ mr: 1 }}>
-          Download
-        </Button>
-        <Button startIcon={<ShareIcon />} onClick={handleShare}>
-          Share
-        </Button>
+    <Box ref={voucherRef} className="voucher-detail" p={3}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4">Service Voucher #{voucher.id}</Typography>
+        <Box>
+          <IconButton onClick={handlePrint} title="Print">
+            <PrintIcon />
+          </IconButton>
+          <IconButton onClick={handleDownloadPDF} title="Download PDF">
+            <DownloadIcon />
+          </IconButton>
+        </Box>
       </Box>
 
-      <div ref={voucherRef}>
-        {/* First Page */}
-        <div className="voucher-page">
-          <div className="voucher-content">
-            <div className="company-header">
-              <div className="logo-area">
-                <img src="/placeholder-logo.png" alt="Company Logo" style={{ maxWidth: '100%', height: 'auto' }} />
-              </div>
-              <div className="company-info">
-                <Typography variant="body2">Empire Building Back Of Baroda | Same Building - 58P - Dubai</Typography>
-                <Typography variant="body2">Tel: +971 4 321 8585</Typography>
-              </div>
-            </div>
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={6}>
+          <Typography variant="h6" gutterBottom>Traveler Information</Typography>
+          <List>
+            <ListItem>
+              <ListItemText 
+                primary="Name" 
+                secondary={voucher.traveler.name} 
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText 
+                primary="Contact" 
+                secondary={
+                  <Box>
+                    <Typography>{voucher.traveler.contact_email}</Typography>
+                    <Typography>{voucher.traveler.contact_phone}</Typography>
+                  </Box>
+                }
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText 
+                primary="Group Size" 
+                secondary={`${voucher.traveler.num_adults} Adults, ${voucher.traveler.num_children || 0} Children, ${voucher.traveler.num_infants || 0} Infants`} 
+              />
+            </ListItem>
+          </List>
+        </Grid>
 
-            <Typography className="service-voucher-title">
-              Service Voucher
-            </Typography>
+        <Grid item xs={12} md={6}>
+          <Typography variant="h6" gutterBottom>Booking Details</Typography>
+          <List>
+            <ListItem>
+              <ListItemText 
+                primary="Hotel" 
+                secondary={voucher.hotel_name} 
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText 
+                primary="Confirmation Number" 
+                secondary={voucher.hotel_confirmation_number} 
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText 
+                primary="Travel Dates" 
+                secondary={`${voucher.travel_start_date} to ${voucher.travel_end_date}`} 
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText 
+                primary="Meal Plan" 
+                secondary={voucher.meal_plan_display} 
+              />
+            </ListItem>
+          </List>
+        </Grid>
 
-            <table className="voucher-table">
-              <tbody>
-                <tr>
-                  <th>GROUP / PAX NAME</th>
-                  <td>{voucher.traveler?.name}</td>
-                </tr>
-                <tr>
-                  <th>TRAVEL DATE</th>
-                  <td>
-                    {new Date(voucher.travel_start_date).toLocaleDateString()} to{' '}
-                    {new Date(voucher.travel_end_date).toLocaleDateString()}
-                  </td>
-                </tr>
-                <tr>
-                  <th>Reservation Number</th>
-                  <td>{voucher.reservation_number}</td>
-                </tr>
-                <tr>
-                  <th>NO OF PAX</th>
-                  <td>
-                    Adults: {voucher.traveler?.num_adults} | Infants: {voucher.traveler?.num_infants}
-                  </td>
-                </tr>
-                <tr>
-                  <th>No Of Rooms</th>
-                  <td>
-                    {renderRoomAllocations(voucher.room_allocations)}
-                  </td>
-                </tr>
-                <tr>
-                  <th>Total Rooms</th>
-                  <td>{voucher.total_rooms}</td>
-                </tr>
-                <tr>
-                  <th>Transfer Type</th>
-                  <td>{voucher.transfer_type_display}</td>
-                </tr>
-                <tr>
-                  <th>Meal Plan</th>
-                  <td>{voucher.meal_plan_display}</td>
-                </tr>
-                <tr>
-                  <th>Hotel Confirmation Number</th>
-                  <td>{voucher.hotel_confirmation_number}</td>
-                </tr>
-                <tr>
-                  <th>Inclusions</th>
-                  <td>
-                    <ul style={{ listStyleType: 'none', padding: 0, margin: 0 }}>
-                      {renderInclusions(voucher.inclusions)}
-                    </ul>
-                  </td>
-                </tr>
-                <tr>
-                  <th>Arrival Details</th>
-                  <td>{voucher.arrival_details}</td>
-                </tr>
-                <tr>
-                  <th>Departure Details</th>
-                  <td>{voucher.departure_details}</td>
-                </tr>
-                <tr>
-                  <th>Meeting Point</th>
-                  <td>{voucher.meeting_point}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div className="emergency-contacts">
-            <h3>Emergency Contact Numbers</h3>
-            <table>
-              <tbody>
-                <tr>
-                  <td>Mr Sohan Dsouza -  <PhoneIcon fontSize="small" /> +971 558238896</td>
-                  <td>Mr Mohammad Anas -  <PhoneIcon fontSize="small" /> +971 505536630</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <Grid item xs={12}>
+          <Divider sx={{ my: 2 }} />
+          <Typography variant="h6" gutterBottom>Room Allocations</Typography>
+          <List>
+            {voucher.room_allocations.map((room: RoomAllocation, index: number) => (
+              <ListItem key={index}>
+                <ListItemText 
+                  primary={`Room ${index + 1}`} 
+                  secondary={`${room.num_adults} Adults, ${room.num_children || 0} Children, ${room.num_infants || 0} Infants`} 
+                />
+              </ListItem>
+            ))}
+          </List>
+        </Grid>
 
-        {/* Second Page - Itinerary */}
-        <div className="voucher-page page-break">
-          {/* Continuation header for itinerary pages */}
-          <div className="company-header">
-            <div className="logo-area">
-              <img src="/placeholder-logo.png" alt="Company Logo" style={{ maxWidth: '100%', height: 'auto' }} />
-            </div>
-            <div className="company-info">
-              <Typography variant="body2">Reservation: {voucher.reservation_number}</Typography>
-              <Typography variant="body2">Guest: {voucher.traveler?.name}</Typography>
-              <Typography variant="body2" className="page-info">Detailed Itinerary</Typography>
-            </div>
-          </div>
+        <Grid item xs={12}>
+          <Divider sx={{ my: 2 }} />
+          <Typography variant="h6" gutterBottom>Itinerary</Typography>
+          <List>
+            {voucher.itinerary_items?.map((item: any, index: number) => (
+              <ListItem key={index}>
+                <ListItemText 
+                  primary={`Day ${index + 1}`} 
+                  secondary={
+                    <Box>
+                      {item.activities?.map((activity: any, actIndex: number) => (
+                        <Typography key={actIndex}>
+                          {activity.time}: {activity.description}
+                        </Typography>
+                      ))}
+                    </Box>
+                  }
+                />
+              </ListItem>
+            ))}
+          </List>
+        </Grid>
 
-          <div className="itinerary-content">
-            {renderItineraryItems(voucher.itinerary_items)}
-          </div>
-
-          {/* Emergency contacts for itinerary pages */}
-          <div className="emergency-contacts">
-            <h3>Emergency Contact Numbers</h3>
-            <table>
-              <tbody>
-                <tr>
-                  <td>Mr. Sohan Dsouza - <PhoneIcon fontSize="small" /> +971 558238896</td>
-                  <td>Mr. Mohammed Anas - <PhoneIcon fontSize="small" /> +971 505536630</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+        <Grid item xs={12}>
+          <Divider sx={{ my: 2 }} />
+          <Typography variant="h6" gutterBottom>Additional Information</Typography>
+          <List>
+            <ListItem>
+              <ListItemText 
+                primary="Transfer Type" 
+                secondary={voucher.transfer_type_display} 
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText 
+                primary="Meeting Point" 
+                secondary={voucher.meeting_point} 
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText 
+                primary="Arrival Details" 
+                secondary={voucher.arrival_details} 
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText 
+                primary="Departure Details" 
+                secondary={voucher.departure_details} 
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText 
+                primary="Inclusions" 
+                secondary={voucher.inclusions} 
+              />
+            </ListItem>
+          </List>
+        </Grid>
+      </Grid>
     </Box>
   );
 };
