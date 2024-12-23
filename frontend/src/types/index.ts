@@ -1,6 +1,7 @@
 export interface BaseTraveler {
   name: string;
   num_adults: number;
+  num_children?: number;
   num_infants: number;
   contact_email?: string;
   contact_phone?: string;
@@ -19,6 +20,9 @@ export interface RoomAllocation {
   room_type: string;
   room_type_display?: string;
   quantity: number;
+  num_adults: number;
+  num_children?: number;
+  num_infants?: number;
 }
 
 export interface ItineraryActivity {
@@ -47,16 +51,16 @@ export interface BaseServiceVoucher {
   travel_end_date: string;
   reservation_number: string;
   hotel_name: string;
-  total_rooms: number;
-  transfer_type_display?: string;
-  meal_plan_display?: string;
   hotel_confirmation_number: string;
+  total_rooms: number;
   transfer_type: string;
+  transfer_type_display?: string;
   meal_plan: string;
-  inclusions: string;
-  arrival_details: string;
-  departure_details: string;
-  meeting_point: string;
+  meal_plan_display?: string;
+  inclusions?: string;
+  arrival_details?: string;
+  departure_details?: string;
+  meeting_point?: string;
 }
 
 export interface ServiceVoucher extends BaseServiceVoucher {

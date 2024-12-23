@@ -125,7 +125,7 @@ const VoucherDetail: React.FC = () => {
             <ListItem>
               <ListItemText 
                 primary="Group Size" 
-                secondary={`${voucher.traveler.num_adults} Adults, ${voucher.traveler.num_children || 0} Children, ${voucher.traveler.num_infants || 0} Infants`} 
+                secondary={`${voucher.traveler.num_adults} Adults${voucher.traveler.num_children ? `, ${voucher.traveler.num_children} Children` : ''}${voucher.traveler.num_infants ? `, ${voucher.traveler.num_infants} Infants` : ''}`} 
               />
             </ListItem>
           </List>
@@ -169,7 +169,7 @@ const VoucherDetail: React.FC = () => {
               <ListItem key={index}>
                 <ListItemText 
                   primary={`Room ${index + 1}`} 
-                  secondary={`${room.num_adults} Adults, ${room.num_children || 0} Children, ${room.num_infants || 0} Infants`} 
+                  secondary={`${room.quantity}x ${room.room_type_display || room.room_type} - ${room.num_adults} Adults${room.num_children ? `, ${room.num_children} Children` : ''}${room.num_infants ? `, ${room.num_infants} Infants` : ''}`} 
                 />
               </ListItem>
             ))}
