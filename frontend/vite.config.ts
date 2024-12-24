@@ -1,19 +1,24 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
+import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    extensions: ['.js', '.jsx', '.ts', '.tsx']
+  },
   build: {
-    target: 'es2015',
-    minify: 'terser',
+    outDir: 'dist',
+    sourcemap: false,
     rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html')
+      },
       output: {
         format: 'es',
         entryFileNames: 'assets/[name].[hash].js',
         chunkFileNames: 'assets/[name].[hash].js',
-        assetFileNames: 'assets/[name].[hash].[ext]',
-        preserveModules: true,
-        preserveModulesRoot: 'src'
+        assetFileNames: 'assets/[name].[hash].[ext]'
       }
     }
   }
