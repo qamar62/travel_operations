@@ -14,8 +14,8 @@ import HotelVoucherCreate from './components/HotelVoucher/HotelVoucherCreate.tsx
 import HotelVoucherEdit from './components/HotelVoucher/HotelVoucherEdit.tsx';
 import Login from './components/Auth/Login.tsx';
 import ProtectedRoute from './components/Auth/ProtectedRoute.tsx';
-import { AuthProvider } from './context/AuthContext.ts';
-import { NotificationProvider } from './context/NotificationContext.ts';
+import { AuthProvider } from './context/AuthContext.tsx';
+import { NotificationProvider } from './context/NotificationContext.tsx';
 
 function App() {
   return (
