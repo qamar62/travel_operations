@@ -5,11 +5,14 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=https://admin.ant.ae/api
     ports:
       - "80:80"
     restart: unless-stopped
     environment:
       - NODE_ENV=production
+      - VITE_API_URL=https://admin.ant.ae/api
     networks:
       - app-network
 
