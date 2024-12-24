@@ -2,22 +2,20 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import theme from '@/theme';
-import {
-  Layout,
-  Dashboard,
-  VoucherList,
-  VoucherDetail,
-  VoucherEdit,
-  HotelVoucherList,
-  HotelVoucherDetail,
-  HotelVoucherCreate,
-  HotelVoucherEdit,
-  Login,
-  ProtectedRoute
-} from '@/components';
-import { AuthProvider } from '@/context/AuthContext';
-import { NotificationProvider } from '@/context/NotificationContext';
+import theme from './theme.ts';
+import Layout from './components/Layout/Layout.tsx';
+import Dashboard from './components/Dashboard/Dashboard.tsx';
+import VoucherList from './components/Voucher/VoucherList.tsx';
+import VoucherDetail from './components/Voucher/VoucherDetail.tsx';
+import VoucherEdit from './components/Voucher/VoucherEdit.tsx';
+import HotelVoucherList from './components/HotelVoucher/HotelVoucherList.tsx';
+import HotelVoucherDetail from './components/HotelVoucher/HotelVoucherDetail.tsx';
+import HotelVoucherCreate from './components/HotelVoucher/HotelVoucherCreate.tsx';
+import HotelVoucherEdit from './components/HotelVoucher/HotelVoucherEdit.tsx';
+import Login from './components/Auth/Login.tsx';
+import ProtectedRoute from './components/Auth/ProtectedRoute.tsx';
+import { AuthProvider } from './context/AuthContext.ts';
+import { NotificationProvider } from './context/NotificationContext.ts';
 
 function App() {
   return (
