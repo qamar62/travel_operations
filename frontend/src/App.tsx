@@ -3,17 +3,19 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from './theme';
-import Layout from './components/Layout/Layout';
-import Dashboard from './components/Dashboard/Dashboard';
-import VoucherList from './components/Voucher/VoucherList';
-import VoucherDetail from './components/Voucher/VoucherDetail';
-import VoucherEdit from './components/Voucher/VoucherEdit';
-import HotelVoucherList from './components/HotelVoucher/HotelVoucherList';
-import HotelVoucherDetail from './components/HotelVoucher/HotelVoucherDetail';
-import HotelVoucherCreate from './components/HotelVoucher/HotelVoucherCreate';
-import HotelVoucherEdit from './components/HotelVoucher/HotelVoucherEdit';
-import Login from './components/Auth/Login';
-import ProtectedRoute from './components/Auth/ProtectedRoute';
+import {
+  Layout,
+  Dashboard,
+  VoucherList,
+  VoucherDetail,
+  VoucherEdit,
+  HotelVoucherList,
+  HotelVoucherDetail,
+  HotelVoucherCreate,
+  HotelVoucherEdit,
+  Login,
+  ProtectedRoute
+} from './components';
 import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 
