@@ -37,7 +37,7 @@ const VoucherDetail: React.FC = () => {
     const fetchVoucher = async () => {
       try {
         setLoading(true);
-        const response = await api.get<ServiceVoucher>(`/service-vouchers/${id}/`);
+        const response = await api.get<ServiceVoucher>(`/operations/service-vouchers/${id}/`);
         console.log('Fetched voucher:', response.data);
         setVoucher(response.data);
         setError(null);
@@ -114,12 +114,7 @@ const VoucherDetail: React.FC = () => {
             <ListItem>
               <ListItemText 
                 primary="Contact" 
-                secondary={
-                  <Box>
-                    <Typography>{voucher.traveler.contact_email}</Typography>
-                    <Typography>{voucher.traveler.contact_phone}</Typography>
-                  </Box>
-                }
+                secondary={voucher.traveler.contact_email} 
               />
             </ListItem>
             <ListItem>
@@ -180,13 +175,13 @@ const VoucherDetail: React.FC = () => {
           <Divider sx={{ my: 2 }} />
           <Typography variant="h6" gutterBottom>Itinerary</Typography>
           <List>
-            {voucher.itinerary_items?.map((item: any, index: number) => (
+            {voucher.itinerary_items?.map((item: ItineraryItem, index: number) => (
               <ListItem key={index}>
                 <ListItemText 
-                  primary={`Day ${index + 1}`} 
+                  primary={`Day ${item.day}`} 
                   secondary={
                     <Box>
-                      {item.activities?.map((activity: any, actIndex: number) => (
+                      {item.activities?.map((activity: ItineraryActivity, actIndex: number) => (
                         <Typography key={actIndex}>
                           {activity.time}: {activity.description}
                         </Typography>

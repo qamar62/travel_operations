@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Typography, CircularProgress } from '@mui/material';
 import ServiceVoucherForm from './ServiceVoucherForm';
-import { updateServiceVoucher } from '../../services/voucherService';
 import { api } from '../../services/api';
-import { ServiceVoucher } from '../../types';
+import { ServiceVoucher, CreateServiceVoucherInput } from '../../types';
 
 const VoucherEdit: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,7 +16,7 @@ const VoucherEdit: React.FC = () => {
     const fetchVoucher = async () => {
       try {
         setLoading(true);
-        const response = await api.get(`/service-vouchers/${id}/`);
+        const response = await api.get<ServiceVoucher>(`/operations/service-vouchers/${id}/`);
         setVoucher(response.data);
       } catch (error) {
         console.error('Error fetching voucher:', error);
@@ -32,10 +31,10 @@ const VoucherEdit: React.FC = () => {
     }
   }, [id]);
 
-  const handleSubmit = async (data: ServiceVoucher) => {
+  const handleSubmit = async (data: CreateServiceVoucherInput) => {
     try {
       if (!id) throw new Error('No voucher ID provided');
-      await updateServiceVoucher(parseInt(id), data);
+      await api.patch(`/operations/service-vouchers/${id}/`, data);
       navigate('/vouchers');
     } catch (error) {
       console.error('Error updating voucher:', error);

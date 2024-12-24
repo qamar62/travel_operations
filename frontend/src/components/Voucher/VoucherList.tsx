@@ -27,11 +27,12 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Visibility as ViewIcon,
+  Add as AddIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { fetchServiceVouchers, deleteServiceVoucher } from '../../services/voucherService';
+import { api } from '../../services/api';
 import { ServiceVoucher, ItineraryItem, ItineraryActivity } from '../../types';
-import CreateVoucherModal from './CreateVoucherModal';
+import ServiceVoucherForm from './ServiceVoucherForm';
 
 // Utility functions for status
 const getVoucherStatus = (startDate: string, endDate: string): { status: string; color: 'success' | 'info' | 'default' } => {
@@ -150,15 +151,13 @@ const VoucherList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [selectedVoucherId, setSelectedVoucherId] = useState<number | null>(null);
   const navigate = useNavigate();
 
   const loadVouchers = async () => {
     try {
       setLoading(true);
-      const response = await fetchServiceVouchers(1, 10);
-      const sortedVouchers = [...response.results].sort((a: ServiceVoucher, b: ServiceVoucher) => {
+      const response = await api.get<{results: ServiceVoucher[]}>('/operations/service-vouchers/');
+      const sortedVouchers = [...response.data.results].sort((a: ServiceVoucher, b: ServiceVoucher) => {
         if (a.id && b.id) {
           return b.id - a.id;
         }
@@ -167,6 +166,7 @@ const VoucherList: React.FC = () => {
       setVouchers(sortedVouchers);
     } catch (error) {
       console.error('Error loading vouchers:', error);
+      setError('Failed to load vouchers');
     } finally {
       setLoading(false);
     }
@@ -192,26 +192,36 @@ const VoucherList: React.FC = () => {
     setIsCreateModalOpen(false);
   };
 
-  const handleVoucherCreated = async (newVoucher: ServiceVoucher) => {
-    await loadVouchers();
-    setIsCreateModalOpen(false);
+  const handleVoucherCreated = async (data: any) => {
+    try {
+      await api.post('/operations/service-vouchers/', data);
+      await loadVouchers();
+      setIsCreateModalOpen(false);
+    } catch (error) {
+      console.error('Error creating voucher:', error);
+      setError('Failed to create voucher');
+    }
   };
 
   return (
     <Box sx={{ width: '100%', p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h5" component="h2">
-          Service Vouchers
-        </Typography>
+        <Typography variant="h4">Service Vouchers</Typography>
         <Button
           variant="contained"
           color="primary"
-          startIcon={<EditIcon />}
+          startIcon={<AddIcon />}
           onClick={handleCreateVoucher}
         >
           Create Voucher
         </Button>
       </Box>
+
+      {error && (
+        <Typography color="error" sx={{ mb: 2 }}>
+          {error}
+        </Typography>
+      )}
 
       <TableContainer component={Paper}>
         <Table>
@@ -220,38 +230,29 @@ const VoucherList: React.FC = () => {
               <TableCell />
               <TableCell>Reservation #</TableCell>
               <TableCell>Traveler</TableCell>
-              <TableCell>Travel Date</TableCell>
+              <TableCell>Start Date</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={6} align="center">Loading...</TableCell>
-              </TableRow>
-            ) : vouchers.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} align="center">No vouchers found</TableCell>
-              </TableRow>
-            ) : (
-              vouchers.map((voucher: ServiceVoucher) => (
-                <ExpandableRow
-                  key={voucher.id}
-                  voucher={voucher}
-                  handleViewVoucher={handleViewVoucher}
-                  handleEditVoucher={handleEditVoucher}
-                />
-              ))
-            )}
+            {vouchers.map((voucher) => (
+              <ExpandableRow
+                key={voucher.id}
+                voucher={voucher}
+                handleViewVoucher={handleViewVoucher}
+                handleEditVoucher={handleEditVoucher}
+              />
+            ))}
           </TableBody>
         </Table>
       </TableContainer>
 
-      <CreateVoucherModal
-        open={isCreateModalOpen}
-        onClose={handleCreateModalClose}
-        onVoucherCreated={handleVoucherCreated}
+      <ServiceVoucherForm
+        isOpen={isCreateModalOpen}
+        onSubmit={handleVoucherCreated}
+        onCancel={handleCreateModalClose}
+        mode="create"
       />
     </Box>
   );

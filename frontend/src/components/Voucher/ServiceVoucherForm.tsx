@@ -15,33 +15,33 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Chip,
-  Fab,
-  Zoom,
   SelectChangeEvent
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { 
-  ServiceVoucher, 
-  RoomAllocation, 
-  ItineraryItem, 
-  ItineraryActivity,
-  CreateServiceVoucherInput 
+  ServiceVoucher,
+  CreateServiceVoucherInput,
+  VoucherFormProps
 } from '../../types';
-
-interface ServiceVoucherFormProps {
-  initialData?: ServiceVoucher;
-  onSubmit: (data: CreateServiceVoucherInput) => void;
-  onCancel: () => void;
-  isOpen: boolean;
-  mode: 'create' | 'edit';
-}
 
 const ROOM_TYPES = [
   { value: 'SGL', label: 'Single Room' },
   { value: 'DBL', label: 'Double Room' },
   { value: 'TWN', label: 'Twin Room' },
   { value: 'TPL', label: 'Triple Room' },
+];
+
+const MEAL_PLANS = [
+  { value: 'BB', label: 'Bed and Breakfast' },
+  { value: 'HB', label: 'Half Board' },
+  { value: 'FB', label: 'Full Board' },
+  { value: 'AI', label: 'All Inclusive' },
+];
+
+const TRANSFER_TYPES = [
+  { value: 'PRIVATE', label: 'Private Transfer' },
+  { value: 'SHARED', label: 'Shared Transfer' },
+  { value: 'GROUP', label: 'Group Transfer' },
 ];
 
 const ACTIVITY_TYPES = [
@@ -54,20 +54,7 @@ const ACTIVITY_TYPES = [
   { value: 'OTHER', label: 'Other' }
 ];
 
-const TRANSFER_TYPES = [
-  { value: 'PRIVATE', label: 'Private Transfer' },
-  { value: 'SHARED', label: 'Shared Transfer' },
-  { value: 'GROUP', label: 'Group Transfer' },
-];
-
-const MEAL_PLANS = [
-  { value: 'BB', label: 'Bed and Breakfast' },
-  { value: 'HB', label: 'Half Board' },
-  { value: 'FB', label: 'Full Board' },
-  { value: 'AI', label: 'All Inclusive' },
-];
-
-const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
+const ServiceVoucherForm: React.FC<VoucherFormProps> = ({
   initialData,
   onSubmit,
   onCancel,
@@ -76,10 +63,15 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
 }) => {
   const [formData, setFormData] = useState<CreateServiceVoucherInput>(() => {
     if (initialData) {
-      const { id, ...rest } = initialData;
+      const { id, created_at, updated_at, ...rest } = initialData;
       return rest;
     }
     return {
+      service_type: 'HOTEL',
+      customer_name: '',
+      service_date: new Date().toISOString().split('T')[0],
+      status: 'PENDING',
+      description: '',
       traveler: {
         name: '',
         num_adults: 1,
@@ -89,7 +81,6 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
         contact_phone: '',
       },
       room_allocations: [{
-        id: Math.random(),
         room_type: 'DBL',
         room_type_display: 'Double Room',
         quantity: 1,
@@ -115,443 +106,476 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
     };
   });
 
-  useEffect(() => {
-    if (initialData) {
-      const { id, ...rest } = initialData;
-      setFormData(rest);
-    }
-  }, [initialData]);
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const submissionData = {
+      ...formData,
+      total_rooms: formData.room_allocations.reduce((sum: number, room) => sum + room.quantity, 0)
+    };
+    onSubmit(submissionData);
+  };
 
   const handleChange = (field: keyof CreateServiceVoucherInput) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>
   ) => {
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       [field]: e.target.value,
-    });
+    }));
   };
 
-  const handleTravelerChange = (field: string) => (
+  const handleTravelerChange = (field: keyof BaseTraveler) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       traveler: {
-        ...formData.traveler,
+        ...prev.traveler,
         [field]: field.includes('num_') ? Number(e.target.value) : e.target.value,
       },
-    });
-  };
-
-  const handleSelectChange = (e: SelectChangeEvent<string>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
     }));
   };
 
-  const handleTransferTypeChange = (e: SelectChangeEvent<string>) => {
-    setFormData((prev) => ({
-      ...prev,
-      transfer_type: e.target.value,
-    }));
-  };
-
-  const handleMealPlanChange = (e: SelectChangeEvent<string>) => {
-    setFormData((prev) => ({
-      ...prev,
-      meal_plan: e.target.value,
-    }));
-  };
-
-  const addRoomAllocation = () => {
-    const newRoom: RoomAllocation = {
-      id: Math.random(), // Temporary ID for frontend
-      room_type: 'DBL',
-      room_type_display: 'Double Room',
-      quantity: 1,
-      num_adults: 2,  // Default for double room
-      num_children: 0,
-      num_infants: 0
-    };
-    setFormData({
-      ...formData,
-      room_allocations: [...formData.room_allocations, newRoom],
-    });
-  };
-
-  const removeRoomAllocation = (index: number) => {
+  const handleRoomChange = (index: number, field: keyof RoomAllocation) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>
+  ) => {
     const newRooms = [...formData.room_allocations];
-    newRooms.splice(index, 1);
-    setFormData({
-      ...formData,
-      room_allocations: newRooms,
-    });
-  };
-
-  const handleRoomTypeChange = (index: number) => (e: SelectChangeEvent<string>) => {
-    const newRooms = [...formData.room_allocations];
-    const selectedType = e.target.value;
+    const value = field.includes('num_') || field === 'quantity' ? Number(e.target.value) : e.target.value;
+    
     newRooms[index] = {
       ...newRooms[index],
-      room_type: selectedType,
-      room_type_display: ROOM_TYPES.find(type => type.value === selectedType)?.label || '',
+      [field]: value,
+      ...(field === 'room_type' && {
+        room_type_display: ROOM_TYPES.find(type => type.value === value)?.label || ''
+      })
     };
-    setFormData({
-      ...formData,
+    
+    setFormData(prev => ({
+      ...prev,
       room_allocations: newRooms,
-    });
+    }));
   };
 
-  const handleQuantityChange = (index: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newRooms = [...formData.room_allocations];
-    newRooms[index] = {
-      ...newRooms[index],
-      quantity: parseInt(e.target.value) || 0,
-    };
-    setFormData({
-      ...formData,
-      room_allocations: newRooms,
-    });
+  const addRoom = () => {
+    setFormData(prev => ({
+      ...prev,
+      room_allocations: [
+        ...prev.room_allocations,
+        {
+          room_type: 'DBL',
+          room_type_display: 'Double Room',
+          quantity: 1,
+          num_adults: 2,
+          num_children: 0,
+          num_infants: 0
+        }
+      ],
+    }));
+  };
+
+  const removeRoom = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      room_allocations: prev.room_allocations.filter((_: any, i: number) => i !== index),
+    }));
   };
 
   const addItineraryItem = () => {
-    const newItem: ItineraryItem = {
-      id: Math.random(), // Temporary ID for frontend
+    const newItem = {
       day: formData.itinerary_items.length + 1,
       date: formData.travel_start_date,
-      time: '',
       activities: [],
     };
-    setFormData({
-      ...formData,
-      itinerary_items: [...formData.itinerary_items, newItem],
-    });
+    setFormData(prev => ({
+      ...prev,
+      itinerary_items: [...prev.itinerary_items, newItem],
+    }));
   };
 
   const removeItineraryItem = (index: number) => {
-    const newItems = [...formData.itinerary_items];
-    newItems.splice(index, 1);
-    // Recalculate days
-    newItems.forEach((item, idx) => {
-      item.day = idx + 1;
-    });
-    setFormData({
-      ...formData,
-      itinerary_items: newItems,
-    });
+    setFormData(prev => ({
+      ...prev,
+      itinerary_items: prev.itinerary_items.filter((_: any, i: number) => i !== index),
+    }));
   };
 
-  const addActivity = (itineraryIndex: number) => {
-    const newActivity: ItineraryActivity = {
-      id: Math.random(), // Temporary ID for frontend
-      time: '09:00',
+  const handleItineraryChange = (index: number, field: keyof ItineraryItem) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const newItems = [...formData.itinerary_items];
+    newItems[index] = {
+      ...newItems[index],
+      [field]: e.target.value,
+    };
+    setFormData(prev => ({
+      ...prev,
+      itinerary_items: newItems,
+    }));
+  };
+
+  const addActivity = (itemIndex: number) => {
+    const newItems = [...formData.itinerary_items];
+    newItems[itemIndex].activities.push({
+      time: '',
       activity_type: 'TRANSFER',
       activity_type_display: 'Transfer',
       description: '',
-      location: '',
-      notes: '',
-    };
-    const newItems = [...formData.itinerary_items];
-    newItems[itineraryIndex].activities.push(newActivity);
-    setFormData({
-      ...formData,
-      itinerary_items: newItems,
     });
-  };
-
-  const removeActivity = (itineraryIndex: number, activityIndex: number) => {
-    const newItems = [...formData.itinerary_items];
-    newItems[itineraryIndex].activities.splice(activityIndex, 1);
-    setFormData({
-      ...formData,
-      itinerary_items: newItems,
-    });
-  };
-
-  const handleActivityChange = (
-    itineraryIndex: number,
-    activityIndex: number,
-    field: keyof ItineraryActivity
-  ) => (
-    e: React.ChangeEvent<HTMLInputElement | { value: unknown }>
-  ) => {
-    const newItems = [...formData.itinerary_items];
-    newItems[itineraryIndex].activities[activityIndex] = {
-      ...newItems[itineraryIndex].activities[activityIndex],
-      [field]: e.target.value,
-      activity_type_display: field === 'activity_type'
-        ? ACTIVITY_TYPES.find(type => type.value === e.target.value)?.label || ''
-        : newItems[itineraryIndex].activities[activityIndex].activity_type_display,
-    };
-    setFormData({
-      ...formData,
-      itinerary_items: newItems,
-    });
-  };
-
-  const handleDateChange = (prev: CreateServiceVoucherInput, index: number) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const newItems = [...prev.itinerary_items];
-    newItems[index].date = e.target.value;
-    setFormData({
+    setFormData(prev => ({
       ...prev,
       itinerary_items: newItems,
-    });
+    }));
   };
 
-  const calculateTotalRooms = (rooms: RoomAllocation[]): number => {
-    return rooms.reduce((sum: number, room: RoomAllocation) => sum + room.quantity, 0);
-  };
-
-  const handleRoomDelete = (room: RoomAllocation, index: number) => {
-    const newRooms = [...formData.room_allocations];
-    newRooms.splice(index, 1);
-    setFormData({
-      ...formData,
-      room_allocations: newRooms,
-    });
-  };
-
-  const handleActivityDelete = (item: ItineraryItem, index: number) => {
+  const removeActivity = (itemIndex: number, activityIndex: number) => {
     const newItems = [...formData.itinerary_items];
-    newItems.splice(index, 1);
-    // Recalculate days
-    newItems.forEach((item, idx) => {
-      item.day = idx + 1;
-    });
-    setFormData({
-      ...formData,
+    newItems[itemIndex].activities.splice(activityIndex, 1);
+    setFormData(prev => ({
+      ...prev,
       itinerary_items: newItems,
-    });
+    }));
   };
 
-  const handleActivityTypeChange = (activity: ItineraryActivity, activityIndex: number, e: SelectChangeEvent<string>) => {
+  const handleActivityChange = (itemIndex: number, activityIndex: number, field: keyof ItineraryActivity) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>
+  ) => {
     const newItems = [...formData.itinerary_items];
-    const selectedType = e.target.value as string;
-    newItems[activityIndex].activities[activityIndex] = {
-      ...newItems[activityIndex].activities[activityIndex],
-      activity_type: selectedType,
-      activity_type_display: ACTIVITY_TYPES.find(type => type.value === selectedType)?.label || '',
+    const value = e.target.value;
+    newItems[itemIndex].activities[activityIndex] = {
+      ...newItems[itemIndex].activities[activityIndex],
+      [field]: value,
+      ...(field === 'activity_type' && {
+        activity_type_display: ACTIVITY_TYPES.find(type => type.value === value)?.label || ''
+      })
     };
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       itinerary_items: newItems,
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const voucherData: Omit<ServiceVoucher, 'id'> = {
-        ...formData,
-        total_rooms: calculateTotalRooms(formData.room_allocations),
-      };
-      
-      if (mode === 'edit') {
-        // await updateServiceVoucher(voucherId, voucherData);
-      } else {
-        // await createServiceVoucher(voucherData as CreateServiceVoucherInput);
-      }
-      // navigate('/vouchers');
-    } catch (error) {
-      console.error('Error saving voucher:', error);
-    }
+    }));
   };
 
   return (
-    <Dialog open={isOpen} maxWidth="md" fullWidth>
+    <Dialog 
+      open={isOpen} 
+      onClose={onCancel}
+      maxWidth="lg"
+      fullWidth
+      PaperProps={{
+        sx: {
+          height: '90vh',
+          display: 'flex',
+          flexDirection: 'column'
+        }
+      }}
+    >
       <DialogTitle>
         {mode === 'create' ? 'Create Service Voucher' : 'Edit Service Voucher'}
       </DialogTitle>
-      <DialogContent>
-        <form onSubmit={handleSubmit}>
-          {/* Traveler Information */}
-          <Grid item xs={12}>
-            <Typography variant="h6" gutterBottom>
-              Traveler Information
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  label="Name"
-                  name="traveler.name"
-                  value={formData.traveler?.name || ''}
-                  onChange={handleTravelerChange('name')}
-                  disabled={mode === 'edit'}
-                />
-              </Grid>
-              <Grid item xs={12} sm={3}>
-                <TextField
-                  required
-                  fullWidth
-                  label="Number of Adults"
-                  name="traveler.num_adults"
-                  type="number"
-                  value={formData.traveler?.num_adults || 1}
-                  onChange={handleTravelerChange('num_adults')}
-                  disabled={mode === 'edit'}
-                  InputProps={{ inputProps: { min: 1 } }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={3}>
-                <TextField
-                  fullWidth
-                  label="Number of Infants"
-                  name="traveler.num_infants"
-                  type="number"
-                  value={formData.traveler?.num_infants || 0}
-                  onChange={handleTravelerChange('num_infants')}
-                  disabled={mode === 'edit'}
-                  InputProps={{ inputProps: { min: 0 } }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Contact Email"
-                  name="traveler.contact_email"
-                  type="email"
-                  value={formData.traveler?.contact_email || ''}
-                  onChange={handleTravelerChange('contact_email')}
-                  disabled={mode === 'edit'}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Contact Phone"
-                  name="traveler.contact_phone"
-                  value={formData.traveler?.contact_phone || ''}
-                  onChange={handleTravelerChange('contact_phone')}
-                  disabled={mode === 'edit'}
-                />
-              </Grid>
-            </Grid>
-          </Grid>
-
-          {/* Reservation Information */}
-          <Grid item xs={12}>
-            <Typography variant="h6" gutterBottom>
-              Reservation Information
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  label="Reservation Number"
-                  name="reservation_number"
-                  value={formData.reservation_number || ''}
-                  onChange={handleChange('reservation_number')}
-                  disabled={mode === 'edit'}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Hotel Name"
-                  value={formData.hotel_name}
-                  onChange={handleChange('hotel_name')}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Hotel Confirmation Number"
-                  value={formData.hotel_confirmation_number}
-                  onChange={handleChange('hotel_confirmation_number')}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Transfer Type</InputLabel>
-                  <Select
-                    name="transfer_type"
-                    value={formData.transfer_type}
-                    onChange={handleTransferTypeChange}
-                    label="Transfer Type"
-                  >
-                    {TRANSFER_TYPES.map(type => (
-                      <MenuItem key={type.value} value={type.value}>
-                        {type.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Meal Plan</InputLabel>
-                  <Select
-                    name="meal_plan"
-                    value={formData.meal_plan}
-                    onChange={handleMealPlanChange}
-                    label="Meal Plan"
-                  >
-                    {MEAL_PLANS.map(plan => (
-                      <MenuItem key={plan.value} value={plan.value}>
-                        {plan.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Travel Start Date"
-                  type="date"
-                  value={formData.travel_start_date.split('T')[0]}
-                  onChange={handleChange('travel_start_date')}
-                  required
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Travel End Date"
-                  type="date"
-                  value={formData.travel_end_date.split('T')[0]}
-                  onChange={handleChange('travel_end_date')}
-                  required
-                  InputLabelProps={{ shrink: true }}
-                />
+      
+      <DialogContent sx={{ flexGrow: 1, overflow: 'auto', pb: 0 }}>
+        <Box 
+          component="form" 
+          onSubmit={handleSubmit}
+          sx={{ 
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 3,
+            pb: '70px' // Add padding to account for sticky buttons
+          }}
+        >
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Typography variant="h6">Traveler Information</Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Traveler Name"
+                    value={formData.traveler.name}
+                    onChange={handleTravelerChange('name')}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Contact Email"
+                    value={formData.traveler.contact_email}
+                    onChange={handleTravelerChange('contact_email')}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Contact Phone"
+                    value={formData.traveler.contact_phone}
+                    onChange={handleTravelerChange('contact_phone')}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Number of Adults"
+                    value={formData.traveler.num_adults}
+                    onChange={handleTravelerChange('num_adults')}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Number of Children"
+                    value={formData.traveler.num_children}
+                    onChange={handleTravelerChange('num_children')}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Number of Infants"
+                    value={formData.traveler.num_infants}
+                    onChange={handleTravelerChange('num_infants')}
+                  />
+                </Grid>
               </Grid>
             </Grid>
-          </Grid>
 
-          {/* Room Allocations */}
-          <Grid item xs={12}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Grid item xs={12}>
+              <Typography variant="h6">Hotel Information</Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Hotel Name"
+                    value={formData.hotel_name}
+                    onChange={handleChange('hotel_name')}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Hotel Confirmation Number"
+                    value={formData.hotel_confirmation_number}
+                    onChange={handleChange('hotel_confirmation_number')}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Meal Plan</InputLabel>
+                    <Select
+                      value={formData.meal_plan}
+                      onChange={handleChange('meal_plan')}
+                      label="Meal Plan"
+                    >
+                      {MEAL_PLANS.map((plan) => (
+                        <MenuItem key={plan.value} value={plan.value}>
+                          {plan.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+            </Grid>
+
+            <Grid item xs={12}>
               <Typography variant="h6">Room Allocations</Typography>
+              {formData.room_allocations.map((room, index) => (
+                <Paper key={index} sx={{ p: 2, mb: 2 }}>
+                  <Grid container spacing={2} alignItems="center">
+                    <Grid item xs={12} md={3}>
+                      <FormControl fullWidth>
+                        <InputLabel>Room Type</InputLabel>
+                        <Select
+                          value={room.room_type}
+                          onChange={handleRoomChange(index, 'room_type')}
+                          label="Room Type"
+                        >
+                          {ROOM_TYPES.map((type) => (
+                            <MenuItem key={type.value} value={type.value}>
+                              {type.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} md={2}>
+                      <TextField
+                        fullWidth
+                        type="number"
+                        label="Quantity"
+                        value={room.quantity}
+                        onChange={handleRoomChange(index, 'quantity')}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={2}>
+                      <TextField
+                        fullWidth
+                        type="number"
+                        label="Adults"
+                        value={room.num_adults}
+                        onChange={handleRoomChange(index, 'num_adults')}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={2}>
+                      <TextField
+                        fullWidth
+                        type="number"
+                        label="Children"
+                        value={room.num_children}
+                        onChange={handleRoomChange(index, 'num_children')}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={2}>
+                      <TextField
+                        fullWidth
+                        type="number"
+                        label="Infants"
+                        value={room.num_infants}
+                        onChange={handleRoomChange(index, 'num_infants')}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={1}>
+                      <IconButton 
+                        onClick={() => removeRoom(index)}
+                        disabled={formData.room_allocations.length === 1}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Grid>
+                  </Grid>
+                </Paper>
+              ))}
               <Button
                 startIcon={<AddIcon />}
-                onClick={addRoomAllocation}
+                onClick={addRoom}
                 variant="outlined"
-                size="small"
+                sx={{ mt: 1 }}
               >
                 Add Room
               </Button>
-            </Box>
-            {formData.room_allocations.map((room, index) => (
-              <Grid container spacing={2} key={index}>
-                <Grid item xs={6}>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Typography variant="h6">Itinerary</Typography>
+              {formData.itinerary_items.map((item, index) => (
+                <Paper key={index} sx={{ p: 2, mb: 2 }}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        type="number"
+                        label="Day"
+                        value={item.day}
+                        onChange={handleItineraryChange(index, 'day')}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        type="date"
+                        label="Date"
+                        value={item.date}
+                        onChange={handleItineraryChange(index, 'date')}
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle1">Activities</Typography>
+                      {item.activities.map((activity, activityIndex) => (
+                        <Box key={activityIndex} sx={{ mb: 2 }}>
+                          <Grid container spacing={2} alignItems="center">
+                            <Grid item xs={12} md={2}>
+                              <TextField
+                                fullWidth
+                                type="time"
+                                label="Time"
+                                value={activity.time}
+                                onChange={handleActivityChange(index, activityIndex, 'time')}
+                                InputLabelProps={{
+                                  shrink: true,
+                                }}
+                              />
+                            </Grid>
+                            <Grid item xs={12} md={3}>
+                              <FormControl fullWidth>
+                                <InputLabel>Activity Type</InputLabel>
+                                <Select
+                                  value={activity.activity_type}
+                                  onChange={handleActivityChange(index, activityIndex, 'activity_type')}
+                                  label="Activity Type"
+                                >
+                                  {ACTIVITY_TYPES.map((type) => (
+                                    <MenuItem key={type.value} value={type.value}>
+                                      {type.label}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                            <Grid item xs={12} md={6}>
+                              <TextField
+                                fullWidth
+                                label="Description"
+                                value={activity.description}
+                                onChange={handleActivityChange(index, activityIndex, 'description')}
+                              />
+                            </Grid>
+                            <Grid item xs={12} md={1}>
+                              <IconButton onClick={() => removeActivity(index, activityIndex)}>
+                                <DeleteIcon />
+                              </IconButton>
+                            </Grid>
+                          </Grid>
+                        </Box>
+                      ))}
+                      <Button
+                        startIcon={<AddIcon />}
+                        onClick={() => addActivity(index)}
+                        variant="outlined"
+                        size="small"
+                      >
+                        Add Activity
+                      </Button>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <IconButton 
+                          onClick={() => removeItineraryItem(index)}
+                          disabled={formData.itinerary_items.length === 1}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    </Grid>
+                  </Grid>
+                </Paper>
+              ))}
+              <Button
+                startIcon={<AddIcon />}
+                onClick={addItineraryItem}
+                variant="outlined"
+                sx={{ mt: 1 }}
+              >
+                Add Day
+              </Button>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Typography variant="h6">Transfer Information</Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
                   <FormControl fullWidth>
-                    <InputLabel>Room Type</InputLabel>
+                    <InputLabel>Transfer Type</InputLabel>
                     <Select
-                      name="room_type"
-                      value={room.room_type}
-                      onChange={handleRoomTypeChange(index)}
-                      label="Room Type"
-                      required
+                      value={formData.transfer_type}
+                      onChange={handleChange('transfer_type')}
+                      label="Transfer Type"
                     >
-                      {ROOM_TYPES.map(type => (
+                      {TRANSFER_TYPES.map((type) => (
                         <MenuItem key={type.value} value={type.value}>
                           {type.label}
                         </MenuItem>
@@ -559,278 +583,87 @@ const ServiceVoucherForm: React.FC<ServiceVoucherFormProps> = ({
                     </Select>
                   </FormControl>
                 </Grid>
-                <Grid item xs={4}>
+              </Grid>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Typography variant="h6">Additional Details</Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
-                    label="Quantity"
-                    type="number"
-                    value={room.quantity}
-                    onChange={handleQuantityChange(index)}
-                    InputProps={{ inputProps: { min: 1 } }}
+                    multiline
+                    rows={2}
+                    label="Meeting Point"
+                    value={formData.meeting_point}
+                    onChange={handleChange('meeting_point')}
                   />
                 </Grid>
-                <Grid item xs={2}>
-                  <IconButton
-                    onClick={() => handleRoomDelete(room, index)}
-                    color="error"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={2}
+                    label="Arrival Details"
+                    value={formData.arrival_details}
+                    onChange={handleChange('arrival_details')}
+                  />
                 </Grid>
-              </Grid>
-            ))}
-          </Grid>
-
-          {/* Itinerary Section */}
-          <Box sx={{ position: 'relative', minHeight: '200px', mb: 4 }}>
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center', 
-              mb: 3,
-              backgroundColor: 'background.paper',
-              py: 2,
-              borderBottom: 1,
-              borderColor: 'divider',
-              position: 'sticky',
-              top: 0,
-              zIndex: 1000,
-            }}>
-              <Typography variant="h6">Itinerary</Typography>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                onClick={addItineraryItem}
-                sx={{
-                  borderRadius: 2,
-                  px: 3,
-                  py: 1,
-                  boxShadow: 2,
-                  '&:hover': {
-                    boxShadow: 4,
-                  }
-                }}
-              >
-                Add Day
-              </Button>
-            </Box>
-            
-            {formData.itinerary_items.map((item, index) => (
-              <Paper key={item.id} sx={{ p: 2, mb: 2, position: 'relative' }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6">Day {item.day}</Typography>
-                  <IconButton 
-                    onClick={() => handleActivityDelete(item, index)}
-                    color="error"
-                    size="small"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
-                
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      type="date"
-                      label="Date"
-                      value={item.date}
-                      onChange={(e) => handleDateChange(formData, index)(e)}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={2}
+                    label="Departure Details"
+                    value={formData.departure_details}
+                    onChange={handleChange('departure_details')}
+                  />
                 </Grid>
-
-                {/* Activities Section */}
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Activities
-                  </Typography>
-                  {item.activities.map((activity, activityIndex) => (
-                    <Paper 
-                      key={activity.id} 
-                      elevation={0} 
-                      sx={{ 
-                        p: 2, 
-                        mb: 2, 
-                        backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                        borderRadius: 1
-                      }}
-                    >
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6} md={3}>
-                          <TextField
-                            fullWidth
-                            label="Time"
-                            type="time"
-                            value={activity.time}
-                            onChange={handleActivityChange(index, activityIndex, 'time')}
-                            InputLabelProps={{ shrink: true }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6} md={3}>
-                          <FormControl fullWidth>
-                            <InputLabel>Activity Type</InputLabel>
-                            <Select
-                              name="activity_type"
-                              value={activity.activity_type}
-                              onChange={(e) => handleActivityTypeChange(activity, activityIndex, e)}
-                              label="Activity Type"
-                            >
-                              {ACTIVITY_TYPES.map(type => (
-                                <MenuItem key={type.value} value={type.value}>
-                                  {type.label}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Grid>
-                        <Grid item xs={12} sm={12} md={6}>
-                          <TextField
-                            fullWidth
-                            label="Description"
-                            value={activity.description}
-                            onChange={handleActivityChange(index, activityIndex, 'description')}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label="Location"
-                            value={activity.location}
-                            onChange={handleActivityChange(index, activityIndex, 'location')}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
-                            <TextField
-                              fullWidth
-                              label="Notes"
-                              value={activity.notes}
-                              onChange={handleActivityChange(index, activityIndex, 'notes')}
-                            />
-                            <IconButton
-                              onClick={() => removeActivity(index, activityIndex)}
-                              color="error"
-                              sx={{ ml: 1 }}
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </Box>
-                        </Grid>
-                      </Grid>
-                    </Paper>
-                  ))}
-                  <Button
-                    startIcon={<AddIcon />}
-                    onClick={() => addActivity(index)}
-                    variant="outlined"
-                    size="small"
-                    sx={{ mt: 1 }}
-                  >
-                    Add Activity
-                  </Button>
-                </Box>
-              </Paper>
-            ))}
-
-            {/* Show a message if no days are added */}
-            {formData.itinerary_items.length === 0 && (
-              <Paper 
-                sx={{ 
-                  p: 4, 
-                  textAlign: 'center',
-                  backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                  border: '2px dashed',
-                  borderColor: 'divider'
-                }}
-              >
-                <Typography variant="body1" color="textSecondary" gutterBottom>
-                  No itinerary days added yet
-                </Typography>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  startIcon={<AddIcon />}
-                  onClick={addItineraryItem}
-                  sx={{ mt: 2 }}
-                >
-                  Add Your First Day
-                </Button>
-              </Paper>
-            )}
-          </Box>
-
-          {/* Additional Information */}
-          <Grid item xs={12}>
-            <Typography variant="h6" gutterBottom>
-              Additional Information
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Inclusions"
-                  multiline
-                  rows={3}
-                  value={formData.inclusions}
-                  onChange={handleChange('inclusions')}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Arrival Details"
-                  multiline
-                  rows={2}
-                  value={formData.arrival_details}
-                  onChange={handleChange('arrival_details')}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Departure Details"
-                  multiline
-                  rows={2}
-                  value={formData.departure_details}
-                  onChange={handleChange('departure_details')}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Meeting Point"
-                  value={formData.meeting_point}
-                  onChange={handleChange('meeting_point')}
-                />
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={3}
+                    label="Inclusions"
+                    value={formData.inclusions}
+                    onChange={handleChange('inclusions')}
+                  />
+                </Grid>
               </Grid>
             </Grid>
           </Grid>
-
-          {/* Form Actions */}
-          <Box sx={{ 
-            position: 'sticky', 
-            bottom: 0, 
-            bgcolor: 'background.paper',
-            py: 2,
-            borderTop: 1,
-            borderColor: 'divider',
-            zIndex: 999,
-            display: 'flex',
-            justifyContent: 'flex-end',
-            gap: 2
-          }}>
-            <Button onClick={onCancel} variant="outlined">
-              Cancel
-            </Button>
-            <Button type="submit" variant="contained" color="primary">
-              {mode === 'create' ? 'Create Voucher' : 'Update Voucher'}
-            </Button>
-          </Box>
-        </form>
+        </Box>
       </DialogContent>
+
+      <DialogActions 
+        sx={{
+          position: 'sticky',
+          bottom: 0,
+          bgcolor: 'background.paper',
+          borderTop: 1,
+          borderColor: 'divider',
+          p: 2,
+          display: 'flex',
+          justifyContent: 'flex-end',
+          gap: 2,
+          zIndex: 1
+        }}
+      >
+        <Button 
+          onClick={onCancel}
+          variant="outlined"
+          color="inherit"
+        >
+          Cancel
+        </Button>
+        <Button 
+          onClick={handleSubmit}
+          variant="contained"
+          color="primary"
+        >
+          {mode === 'create' ? 'Create Voucher' : 'Save Changes'}
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 };

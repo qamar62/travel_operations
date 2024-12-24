@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ServiceVoucher, CreateServiceVoucherInput, Booking } from '../types';
+import { ServiceVoucher, CreateServiceVoucherInput } from '../types';
 import { getAuthToken } from '../utils/auth';
 import { refreshAccessToken } from './authService';
 
@@ -85,29 +85,4 @@ export const updateServiceVoucher = async (id: number, voucher: Partial<ServiceV
 
 export const deleteServiceVoucher = async (id: number) => {
   await api.delete(`/operations/service-vouchers/${id}/`);
-};
-
-// Booking related API calls
-export const fetchBookings = async () => {
-  const response = await api.get<{results: Booking[]}>('/bookings/');
-  return response.data.results;
-};
-
-export const fetchBookingById = async (id: number) => {
-  const response = await api.get<Booking>(`/bookings/${id}/`);
-  return response.data;
-};
-
-export const createBooking = async (booking: Omit<Booking, 'id'>) => {
-  const response = await api.post<Booking>('/bookings/', booking);
-  return response.data;
-};
-
-export const updateBooking = async (id: number, booking: Partial<Booking>) => {
-  const response = await api.patch<Booking>(`/bookings/${id}/`, booking);
-  return response.data;
-};
-
-export const deleteBooking = async (id: number) => {
-  await api.delete(`/bookings/${id}/`);
 };
