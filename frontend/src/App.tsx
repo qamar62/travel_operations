@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import theme from './theme';
+import theme from '@/theme';
 import {
   Layout,
   Dashboard,
@@ -15,9 +15,9 @@ import {
   HotelVoucherEdit,
   Login,
   ProtectedRoute
-} from './components';
-import { AuthProvider } from './context/AuthContext';
-import { NotificationProvider } from './context/NotificationContext';
+} from '@/components';
+import { AuthProvider } from '@/context/AuthContext';
+import { NotificationProvider } from '@/context/NotificationContext';
 
 function App() {
   return (
