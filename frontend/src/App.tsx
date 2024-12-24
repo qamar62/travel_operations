@@ -8,10 +8,12 @@ import Dashboard from './components/Dashboard/Dashboard';
 import VoucherList from './components/Voucher/VoucherList';
 import VoucherDetail from './components/Voucher/VoucherDetail';
 import VoucherEdit from './components/Voucher/VoucherEdit';
-import HotelVoucherList from './components/HotelVoucher/HotelVoucherList';
-import HotelVoucherDetail from './components/HotelVoucher/HotelVoucherDetail';
-import HotelVoucherCreate from './components/HotelVoucher/HotelVoucherCreate';
-import HotelVoucherEdit from './components/HotelVoucher/HotelVoucherEdit';
+import {
+  HotelVoucherList,
+  HotelVoucherDetail,
+  HotelVoucherCreate,
+  HotelVoucherEdit
+} from './components/HotelVoucher';
 import Login from './components/Auth/Login';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
