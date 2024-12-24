@@ -46,7 +46,7 @@ export interface ItineraryItem {
 export interface BaseServiceVoucher {
   traveler: BaseTraveler;
   room_allocations: RoomAllocation[];
-  itinerary_items: ItineraryItem[];
+  itinerary_items: ItineraryItem[];  // Making sure this is included
   travel_start_date: string;
   travel_end_date: string;
   reservation_number: string;

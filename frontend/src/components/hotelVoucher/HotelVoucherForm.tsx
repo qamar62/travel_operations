@@ -4,7 +4,6 @@ import {
   TextField,
   Button,
   Grid,
-  MenuItem,
   Paper,
   Typography,
 } from '@mui/material';
@@ -30,11 +29,13 @@ const HotelVoucherForm: React.FC<HotelVoucherFormProps> = ({
     guest_name: initialData?.guest_name || '',
     hotel_name: initialData?.hotel_name || '',
     hotel_address: initialData?.hotel_address || '',
-    number_of_rooms: initialData?.number_of_rooms || 1,
     check_in_date: initialData?.check_in_date || '',
     check_out_date: initialData?.check_out_date || '',
     number_of_nights: initialData?.number_of_nights || 1,
+    number_of_rooms: initialData?.number_of_rooms || 1,
+    room_type: initialData?.room_type || '',
     confirmation_number: initialData?.confirmation_number || '',
+    status: initialData?.status || 'pending'
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -163,6 +164,15 @@ const HotelVoucherForm: React.FC<HotelVoucherFormProps> = ({
               value={formData.confirmation_number}
               onChange={handleChange}
               required
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="Room Type"
+              name="room_type"
+              value={formData.room_type}
+              onChange={handleChange}
             />
           </Grid>
         </Grid>

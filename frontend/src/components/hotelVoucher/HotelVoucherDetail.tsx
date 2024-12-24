@@ -108,6 +108,9 @@ const HotelVoucherDetail: React.FC = () => {
           </Typography>
           <DetailRow label="Hotel Name" value={voucher.hotel_name} />
           <DetailRow label="Hotel Address" value={voucher.hotel_address} />
+          {voucher.room_type && (
+            <DetailRow label="Room Type" value={voucher.room_type} />
+          )}
         </Box>
 
         <Divider sx={{ my: 3 }} />
@@ -126,6 +129,9 @@ const HotelVoucherDetail: React.FC = () => {
           />
           <DetailRow label="Number of Nights" value={voucher.number_of_nights} />
           <DetailRow label="Number of Rooms" value={voucher.number_of_rooms} />
+          {voucher.status && (
+            <DetailRow label="Status" value={voucher.status} />
+          )}
         </Box>
       </Paper>
     </Box>
