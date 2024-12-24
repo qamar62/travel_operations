@@ -21,7 +21,8 @@
       "@/*": ["src/*"]
     },
     "incremental": true,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "allowImportingTsExtensions": true
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]

@@ -1,5 +1,5 @@
-export { default as HotelVoucherList } from './HotelVoucherList';
-export { default as HotelVoucherDetail } from './HotelVoucherDetail';
-export { default as HotelVoucherCreate } from './HotelVoucherCreate';
-export { default as HotelVoucherEdit } from './HotelVoucherEdit';
-export { default as HotelVoucherForm } from './HotelVoucherForm';
+export { default as HotelVoucherList } from './HotelVoucherList.tsx';
+export { default as HotelVoucherDetail } from './HotelVoucherDetail.tsx';
+export { default as HotelVoucherCreate } from './HotelVoucherCreate.tsx';
+export { default as HotelVoucherEdit } from './HotelVoucherEdit.tsx';
+export { default as HotelVoucherForm } from './HotelVoucherForm.tsx';
