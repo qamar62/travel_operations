@@ -1,7 +1,13 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from operations.views import TravelerViewSet, ServiceVoucherViewSet, ItineraryViewSet, ItineraryActivityViewSet
+from operations.views import (
+    TravelerViewSet, 
+    ServiceVoucherViewSet, 
+    ItineraryViewSet, 
+    ItineraryActivityViewSet,
+    HotelVoucherViewSet
+)
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -22,13 +28,16 @@ schema_view = get_schema_view(
 
 router = DefaultRouter()
 router.register(r'travelers', TravelerViewSet)
-router.register(r'service-vouchers', ServiceVoucherViewSet)  # Changed back to service-vouchers
+router.register(r'service-vouchers', ServiceVoucherViewSet, basename='service-voucher')  
+router.register(r'hotel-vouchers', HotelVoucherViewSet, basename='hotel-voucher')
 router.register(r'itinerary', ItineraryViewSet, basename='itinerary')
 router.register(r'itinerary-activities', ItineraryActivityViewSet, basename='itinerary-activity')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include(router.urls)),
+    path('api/users/', include('users.urls')),
+    path('api/operations/', include(router.urls)),
+    # Voucher history endpoint
     
     # Swagger documentation URLs
     path('swagger.json', schema_view.without_ui(cache_timeout=0), name='schema-json'),

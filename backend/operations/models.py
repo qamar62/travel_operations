@@ -111,3 +111,14 @@ class ItineraryActivity(models.Model):
     class Meta:
         ordering = ['time']
         verbose_name_plural = 'Itinerary Activities'
+
+
+class HotelVoucher(models.Model):
+    hotel_name = models.CharField(max_length=255)
+    hotel_address = models.CharField(max_length=255)
+    guest_name = models.CharField(max_length=255)
+    number_of_rooms = models.IntegerField()
+    check_in_date = models.DateField()
+    check_out_date = models.DateField()
+    number_of_nights = models.IntegerField()
+    confirmation_number = models.CharField(max_length=100)

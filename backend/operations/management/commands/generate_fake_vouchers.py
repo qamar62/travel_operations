@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from operations.models import ServiceVoucher, Traveler, Itinerary, RoomAllocation, ItineraryActivity
+from operations.models import ServiceVoucher, Traveler, Itinerary, RoomAllocation, ItineraryActivity, HotelVoucher
 from faker import Faker
 import random
 from datetime import timedelta
@@ -67,4 +67,17 @@ class Command(BaseCommand):
                         notes=fake.text(max_nb_chars=50)
                     )
 
-        self.stdout.write(self.style.SUCCESS('Successfully created 15 fake service vouchers with travelers, room allocations, itineraries, and activities.'))
+            # Create fake hotel voucher
+            hotel_voucher = HotelVoucher(
+                hotel_name=voucher.hotel_name,
+                hotel_address=fake.address(),
+                guest_name=traveler.name,
+                number_of_rooms=random.randint(1, 5),
+                check_in_date=start_date,
+                check_out_date=end_date,
+                number_of_nights=(end_date - start_date).days,
+                confirmation_number=fake.uuid4()
+            )
+            hotel_voucher.save()
+
+        self.stdout.write(self.style.SUCCESS('Successfully created 15 fake service vouchers with travelers, room allocations, itineraries, activities, and hotel vouchers.'))

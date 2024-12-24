@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { ServiceVoucher, CreateServiceVoucherInput, Booking } from '../types';
+import { getAuthToken } from '../utils/auth';
+import { refreshAccessToken } from './authService';
 
 // Get the API URL from environment variables
 const isDevelopment = import.meta.env.MODE === 'development';
@@ -7,7 +9,7 @@ const API_URL = isDevelopment
   ? 'http://127.0.0.1:8000/api'
   : 'https://admin.ant.ae/api';
 
-console.log('Current API URL:', API_URL); // For debugging
+console.log('Current API URL:', API_URL);
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -16,46 +18,73 @@ export const api = axios.create({
   },
 });
 
-// Add request interceptor for debugging
-api.interceptors.request.use(request => {
-  console.log('Starting Request:', request.url);
-  return request;
-});
+// Add request interceptor for authentication
+api.interceptors.request.use(
+  (config) => {
+    const token = getAuthToken();
+    if (token) {
+      config.headers.Authorization = token;
+    }
+    console.log('Starting Request:', config.url);
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
-// Add response interceptor for debugging
+// Add response interceptor for handling token refresh
 api.interceptors.response.use(
-  response => {
+  (response) => {
     console.log('Response:', response.status, response.data);
     return response;
   },
-  error => {
+  async (error) => {
+    const originalRequest = error.config;
+
+    // If the error is 401 and we haven't tried to refresh the token yet
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        await refreshAccessToken();
+        const token = getAuthToken();
+        if (token) {
+          originalRequest.headers.Authorization = token;
+        }
+        return api(originalRequest);
+      } catch (refreshError) {
+        return Promise.reject(refreshError);
+      }
+    }
+
     console.error('API Error:', error.response?.status, error.response?.data);
     return Promise.reject(error);
   }
 );
 
 export const fetchServiceVouchers = async () => {
-  const response = await api.get<{results: ServiceVoucher[]}>('/service-vouchers/');
+  const response = await api.get<{results: ServiceVoucher[]}>('/operations/service-vouchers/');
   return response.data.results;
 };
 
 export const fetchServiceVoucherById = async (id: number) => {
-  const response = await api.get<ServiceVoucher>(`/service-vouchers/${id}/`);
+  const response = await api.get<ServiceVoucher>(`/operations/service-vouchers/${id}/`);
   return response.data;
 };
 
 export const createServiceVoucher = async (voucher: CreateServiceVoucherInput) => {
-  const response = await api.post<ServiceVoucher>('/service-vouchers/', voucher);
+  const response = await api.post<ServiceVoucher>('/operations/service-vouchers/', voucher);
   return response.data;
 };
 
 export const updateServiceVoucher = async (id: number, voucher: Partial<ServiceVoucher>) => {
-  const response = await api.patch<ServiceVoucher>(`/service-vouchers/${id}/`, voucher);
+  const response = await api.patch<ServiceVoucher>(`/operations/service-vouchers/${id}/`, voucher);
   return response.data;
 };
 
 export const deleteServiceVoucher = async (id: number) => {
-  await api.delete(`/service-vouchers/${id}/`);
+  await api.delete(`/operations/service-vouchers/${id}/`);
 };
 
 // Booking related API calls

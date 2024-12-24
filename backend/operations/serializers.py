@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Traveler, ServiceVoucher, RoomAllocation, Itinerary, ItineraryActivity
+from .models import Traveler, ServiceVoucher, RoomAllocation, Itinerary, ItineraryActivity, HotelVoucher
 
 class ItineraryActivitySerializer(serializers.ModelSerializer):
     activity_type_display = serializers.CharField(source='get_activity_type_display', read_only=True)
@@ -46,3 +46,8 @@ class ServiceVoucherSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'traveler': {'read_only': True}
         }
+
+class HotelVoucherSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HotelVoucher
+        fields = '__all__'

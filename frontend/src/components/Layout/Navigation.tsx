@@ -50,6 +50,7 @@ const Navigation: React.FC = () => {
 
   const operationsItems = [
     { text: 'Service Vouchers', icon: <VoucherIcon />, path: '/vouchers' },
+    { text: 'Hotel Vouchers', icon: <HotelIcon />, path: '/hotel-vouchers' },
     //{ text: 'Flight Bookings', icon: <FlightIcon />, path: '/flights' },
     //{ text: 'Hotel Reservations', icon: <HotelIcon />, path: '/hotels' },
     //{ text: 'Transfers', icon: <TransferIcon />, path: '/transfers' },

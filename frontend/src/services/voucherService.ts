@@ -1,8 +1,6 @@
-import axios from 'axios';
 import { api } from './api';
 import { ServiceVoucher, CreateServiceVoucherInput } from '../types';
-
-const API_URL = 'http://127.0.0.1:8000/api';
+import { getAuthToken } from '../utils/auth';
 
 interface ApiResponse {
   count: number;
@@ -16,7 +14,15 @@ export const fetchServiceVouchers = async (
   pageSize: number = 10
 ): Promise<ApiResponse> => {
   try {
-    const response = await api.get(`/service-vouchers/?page=${page}&page_size=${pageSize}`);
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    const response = await api.get(`/operations/service-vouchers/?page=${page}&page_size=${pageSize}`, {
+      headers: {
+        Authorization: token
+      }
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching service vouchers:', error);
@@ -28,7 +34,15 @@ export const createServiceVoucher = async (
   voucher: CreateServiceVoucherInput
 ): Promise<ServiceVoucher> => {
   try {
-    const response = await api.post('/service-vouchers/', voucher);
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    const response = await api.post('/operations/service-vouchers/', voucher, {
+      headers: {
+        Authorization: token
+      }
+    });
     return response.data;
   } catch (error) {
     console.error('Error creating service voucher:', error);
@@ -41,7 +55,15 @@ export const updateServiceVoucher = async (
   voucher: Partial<ServiceVoucher>
 ): Promise<ServiceVoucher> => {
   try {
-    const response = await api.patch(`/service-vouchers/${id}/`, voucher);
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    const response = await api.patch(`/operations/service-vouchers/${id}/`, voucher, {
+      headers: {
+        Authorization: token
+      }
+    });
     return response.data;
   } catch (error) {
     console.error('Error updating service voucher:', error);
@@ -51,7 +73,15 @@ export const updateServiceVoucher = async (
 
 export const deleteServiceVoucher = async (id: number): Promise<void> => {
   try {
-    await api.delete(`/service-vouchers/${id}/`);
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    await api.delete(`/operations/service-vouchers/${id}/`, {
+      headers: {
+        Authorization: token
+      }
+    });
   } catch (error) {
     console.error('Error deleting service voucher:', error);
     throw new Error('Failed to delete service voucher');

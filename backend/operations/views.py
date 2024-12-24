@@ -2,13 +2,14 @@ from rest_framework import viewsets, status, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import transaction
-from .models import Traveler, ServiceVoucher, RoomAllocation, Itinerary, ItineraryActivity
+from .models import Traveler, ServiceVoucher, RoomAllocation, Itinerary, ItineraryActivity, HotelVoucher
 from .serializers import (
     TravelerSerializer, 
     ServiceVoucherSerializer,
     RoomAllocationSerializer,
     ItinerarySerializer,
-    ItineraryActivitySerializer
+    ItineraryActivitySerializer,
+    HotelVoucherSerializer
 )
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -228,6 +229,14 @@ class ServiceVoucherViewSet(viewsets.ModelViewSet):
                 {"error": "Failed to create service voucher", "details": str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+class HotelVoucherViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for managing hotel vouchers.
+    """
+    queryset = HotelVoucher.objects.all().order_by('-id')
+    serializer_class = HotelVoucherSerializer
+    ordering = ['-id']
 
 class ItineraryViewSet(viewsets.ModelViewSet):
     """

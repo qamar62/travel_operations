@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ServiceVoucher, Traveler, RoomAllocation, Itinerary, ItineraryActivity
+from .models import ServiceVoucher, Traveler, RoomAllocation, Itinerary, ItineraryActivity, HotelVoucher
 
 class RoomAllocationInline(admin.TabularInline):
     model = RoomAllocation
@@ -71,3 +71,8 @@ class ItineraryActivityAdmin(admin.ModelAdmin):
 class TravelerAdmin(admin.ModelAdmin):
     list_display = ('name', 'num_adults', 'num_infants', 'contact_email', 'contact_phone')
     search_fields = ('name', 'contact_email', 'contact_phone')
+
+@admin.register(HotelVoucher)
+class HotelVoucherAdmin(admin.ModelAdmin):
+    list_display = ('hotel_name', 'guest_name', 'check_in_date', 'check_out_date', 'confirmation_number')
+    search_fields = ('hotel_name', 'guest_name', 'confirmation_number')

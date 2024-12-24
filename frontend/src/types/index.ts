@@ -89,3 +89,24 @@ export interface Booking {
   meeting_point?: string;
   itinerary_items?: ItineraryItem[];
 }
+
+export interface BaseHotelVoucher {
+  guest_name: string;
+  hotel_name: string;
+  hotel_address: string;
+  check_in_date: string;
+  check_out_date: string;
+  number_of_nights: number;
+  number_of_rooms: number;
+  room_type?: string;
+  confirmation_number: string;
+  status?: string;
+}
+
+export interface HotelVoucher extends BaseHotelVoucher {
+  id: number;
+}
+
+export interface CreateHotelVoucherInput extends BaseHotelVoucher {
+  id?: never;
+}
