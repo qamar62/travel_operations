@@ -7,22 +7,31 @@ WORKDIR /app
 ARG VITE_API_URL
 ENV VITE_API_URL=${VITE_API_URL}
 
-# Copy package files
+# Copy package files first
 COPY package.json package-lock.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies with exact versions
+RUN npm ci --legacy-peer-deps
 
-# Copy source code
+# Copy source files
 COPY . .
+
+# Debug: Show directory structure and file contents
+RUN echo "=== Listing src/components/ ===" && \
+    ls -la src/components/ && \
+    echo "=== Listing src/components/HotelVoucher/ ===" && \
+    ls -la src/components/HotelVoucher/ && \
+    echo "=== Content of index.ts ===" && \
+    cat src/components/HotelVoucher/index.ts && \
+    echo "=== Content of App.tsx ===" && \
+    cat src/App.tsx
 
 # Set production environment
 ENV NODE_ENV=production
 
-# Build application
-RUN npm run build
+# Build application with verbose logging
+RUN npm run build --verbose
 
-# Production stage
 FROM nginx:alpine
 
 # Copy built assets
