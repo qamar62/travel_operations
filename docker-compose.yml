@@ -11,6 +11,8 @@ services:
     environment:
       - NODE_ENV=production
       - VITE_API_URL=https://admin.ant.ae/api
+    volumes:
+      - frontend-build:/app/dist
     networks:
       - app-network
 
@@ -18,8 +20,11 @@ services:
     image: nginx:alpine
     volumes:
       - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf
+      - frontend-build:/usr/share/nginx/html:ro
     ports:
       - "80:80"
+    depends_on:
+      - frontend
     networks:
       - app-network
     restart: unless-stopped
@@ -27,3 +32,6 @@ services:
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  frontend-build:
